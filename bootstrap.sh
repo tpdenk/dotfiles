@@ -11,6 +11,7 @@
 #   ./bootstrap.sh omz        just oh-my-zsh
 #   ./bootstrap.sh ssh        just the ssh key setup
 #   ./bootstrap.sh editor     just the editor installation
+#   ./bootstrap.sh omp        just install omp (oh-my-pi)
 
 set -euo pipefail
 
@@ -24,6 +25,10 @@ have() { command -v "$1" >/dev/null 2>&1; }
 
 [[ $EUID -ne 0 ]] || die "run as your normal user, not root"
 have sudo || die "sudo not installed"
+
+install_omp() {
+	curl -fsSL https://omp.sh/install | sh
+}
 
 install_editor() {
 	local EDITOR=ed
@@ -218,6 +223,7 @@ case "${1:-all}" in
 	omz)      install_omz ;;
 	ssh)      setup_ssh ;;
 	editor)   install_editor ;;
+	omp)      install_omp ;;
 	all)
 		install_pkgs
 		link_dotfiles
@@ -226,6 +232,7 @@ case "${1:-all}" in
 		install_omz
 		setup_ssh
 		install_editor
+		install_omp
 		log "done. log out and back in on tty1, uwsm starts Hyprland" ;;
 	*)        sed -n '3,12p' "$0"; exit 1 ;;
 esac
