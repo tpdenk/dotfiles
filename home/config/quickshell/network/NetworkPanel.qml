@@ -85,16 +85,31 @@ Rectangle {
             color: Qt.alpha(Theme.muted, 0.5)
         }
 
+        // one tab per interface; pointless with a single one
+        InterfaceTabs {
+            width: parent.width
+            visible: NetworkStatus.devices.length > 1
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 1
+            visible: NetworkStatus.devices.length > 1
+            color: Qt.alpha(Theme.muted, 0.5)
+        }
+
+        // the wired equivalent would just repeat the tab's interface name
         Stat {
             width: parent.width
-            label: NetworkStatus.wifi ? "SSID" : "Connection"
+            visible: NetworkStatus.wifi
+            label: "SSID"
             value: NetworkStatus.name || "—"
         }
 
         Stat {
             width: parent.width
             label: NetworkStatus.wifi ? "Signal" : "Link speed"
-            value: NetworkStatus.wifi ? `${Math.round(NetworkStatus.signalStrength * 100)}%` : NetworkStatus.linkSpeed ? `${NetworkStatus.linkSpeed} Mbit/s` : "—"
+            value: NetworkStatus.wifi ? NetworkStatus.connected ? `${Math.round(NetworkStatus.signalStrength * 100)}%` : "—" : NetworkStatus.linkSpeed ? `${NetworkStatus.linkSpeed} Mbit/s` : "—"
         }
 
         Stat {
@@ -136,7 +151,9 @@ Rectangle {
         Stat {
             width: parent.width
             label: "Status"
-            value: `${NetworkStatus.status} · ${NetworkStatus.connectivity}`
+            // connectivity is NetworkManager-wide, so it says nothing about an
+            // interface that is down
+            value: NetworkStatus.connected ? `${NetworkStatus.status} · ${NetworkStatus.connectivity}` : NetworkStatus.status
         }
 
         Item {

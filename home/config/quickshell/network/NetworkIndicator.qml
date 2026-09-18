@@ -8,7 +8,7 @@ Text {
     text: NetworkStatus.icon
     font.family: Theme.fontFamily
     font.pointSize: Theme.h1Size
-    color: NetworkStatus.expanded ? Theme.brightText : NetworkStatus.connected ? Theme.accent : Theme.muted
+    color: NetworkStatus.expanded ? Theme.brightText : NetworkStatus.primaryConnected ? Theme.accent : Theme.muted
 
     MouseArea {
         anchors {

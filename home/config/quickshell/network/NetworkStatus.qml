@@ -4,8 +4,9 @@ import Quickshell.Io
 import Quickshell.Networking
 import QtQuick
 
-// State of the primary network connection: NetworkManager facts from
-// Quickshell.Networking plus latency/throughput, sampled while `expanded`.
+// State of the machine's network interfaces: NetworkManager facts from
+// Quickshell.Networking, plus latency/throughput measured for whichever
+// interface the panel currently shows.
 Singleton {
     id: root
 
@@ -14,22 +15,89 @@ Singleton {
 
     readonly property var devices: Networking.devices.values.filter(d => d.type === DeviceType.Wired || d.type === DeviceType.Wifi)
 
-    // the connection the bar speaks for. wired wins over wifi (NM routes it
-    // first); an unplugged-but-present device still beats wifi so the toggle
-    // can bring it back up.
-    readonly property var device: devices.find(d => d.connected && d.type === DeviceType.Wired) ?? devices.find(d => d.connected) ?? devices.find(d => d.type === DeviceType.Wired && d.hasLink) ?? devices.find(d => d.type === DeviceType.Wifi) ?? devices[0] ?? null
+    // the interface the bar icon speaks for. wired wins over wifi (NM routes
+    // it first); an unplugged-but-present device still beats wifi so its tab
+    // is the one offered first.
+    readonly property var primary: devices.find(d => d.connected && d.type === DeviceType.Wired) ?? devices.find(d => d.connected) ?? devices.find(d => d.type === DeviceType.Wired && d.hasLink) ?? devices.find(d => d.type === DeviceType.Wifi) ?? devices[0] ?? null
+
+    // the selected tab; null (or a vanished device) falls back to `primary`
+    property var selected: null
+    readonly property var device: selected && devices.includes(selected) ? selected : primary
+
+    // --- per device, so both the bar icon and any tab can be described ---
+
+    // wifi: the associated AP; wired: the device's connection profile
+    function networkOf(dev: var): var {
+        if (!dev)
+            return null;
+        return dev.type === DeviceType.Wifi ? dev.networks?.values.find(n => n.connected) ?? null : dev.network ?? null;
+    }
+
+    // 0-1, wifi only; a wired link is either full strength or nothing
+    function signalOf(dev: var): real {
+        if (!dev)
+            return 0;
+        if (dev.type !== DeviceType.Wifi)
+            return dev.hasLink ? 1 : 0;
+        return networkOf(dev)?.signalStrength ?? 0;
+    }
+
+    // wifi: the rfkill soft block; wired: the link itself, which NM keeps down
+    // (autoconnect blocked) until explicitly reconnected
+    function enabledOf(dev: var): bool {
+        if (!dev)
+            return false;
+        return dev.type === DeviceType.Wifi ? Networking.wifiEnabled : dev.connected;
+    }
+
+    // 0-4: signal, capped by latency and loss where those are measured
+    function qualityOf(dev: var): int {
+        if (!dev?.connected)
+            return 0;
+        let level = dev.type === DeviceType.Wifi ? Math.max(1, Math.ceil(signalOf(dev) * 4)) : 4;
+        if (dev === device) {
+            if (packetLoss >= 50)
+                level = Math.min(level, 1);
+            else if (packetLoss > 5 || pingMs > 200)
+                level = Math.min(level, 2);
+            else if (pingMs > 100)
+                level = Math.min(level, 3);
+        }
+        return level;
+    }
+
+    // wired: the jack, crossed-out cable when the link is down.
+    // wifi: the wedge filled to the quality level, hollow when associated with
+    // nothing, crossed out when the radio is off.
+    function iconOf(dev: var): string {
+        if (!dev || dev.type !== DeviceType.Wifi)
+            return String.fromCodePoint(dev?.connected ? 0xf0200 : 0xf0202); // ethernet, ethernet cable off
+        if (!Networking.wifiEnabled)
+            return String.fromCodePoint(0xf05aa); // wifi off
+        if (!dev.connected)
+            return String.fromCodePoint(0xf092f); // wifi strength outline
+        return String.fromCodePoint([0xf091f, 0xf091f, 0xf0922, 0xf0925, 0xf0928][qualityOf(dev)]);
+    }
+
+    // --- the bar icon: always the primary interface, whatever tab is open ---
+
+    readonly property string icon: iconOf(primary)
+    readonly property bool primaryConnected: primary?.connected ?? false
+
+    // --- the selected tab ---
 
     readonly property bool wifi: device?.type === DeviceType.Wifi
     readonly property bool connected: device?.connected ?? false
-    // wifi: the associated AP; wired: the device's connection profile
-    readonly property var network: wifi ? device?.networks?.values.find(n => n.connected) ?? null : device?.network ?? null
-
+    readonly property var network: networkOf(device)
     readonly property string name: network?.name ?? ""
-    // 0-1, wifi only; a wired link is either full strength or nothing
-    readonly property real signalStrength: wifi ? network?.signalStrength ?? 0 : device?.hasLink ? 1 : 0
+    readonly property real signalStrength: signalOf(device)
     readonly property int linkSpeed: device?.linkSpeed ?? 0
     readonly property string status: device ? ConnectionState.toString(device.state) : "No device"
+    readonly property bool enabled: enabledOf(device)
+    readonly property int quality: qualityOf(device)
+    readonly property string qualityLabel: ["Offline", "Poor", "Fair", "Good", "Excellent"][quality]
 
+    // NetworkManager-wide, not per interface
     readonly property string connectivity: {
         switch (Networking.connectivity) {
         case NetworkConnectivity.Full:
@@ -45,10 +113,6 @@ Singleton {
         }
     }
 
-    // wifi: the rfkill soft block; wired: the link itself, which NM keeps down
-    // (autoconnect blocked) until explicitly reconnected
-    readonly property bool enabled: wifi ? Networking.wifiEnabled : connected
-
     function setEnabled(on: bool): void {
         if (!device)
             return;
@@ -60,36 +124,7 @@ Singleton {
             device.disconnect();
     }
 
-    // 0-4: signal, capped by measured latency and loss
-    readonly property int quality: {
-        if (!connected)
-            return 0;
-        let level = wifi ? Math.max(1, Math.ceil(signalStrength * 4)) : 4;
-        if (packetLoss >= 50)
-            level = Math.min(level, 1);
-        else if (packetLoss > 5 || pingMs > 200)
-            level = Math.min(level, 2);
-        else if (pingMs > 100)
-            level = Math.min(level, 3);
-        return level;
-    }
-
-    readonly property string qualityLabel: ["Offline", "Poor", "Fair", "Good", "Excellent"][quality]
-
-    // wired: the jack, crossed-out cable when the link is down.
-    // wifi: the wedge filled to `quality`, hollow when associated with
-    // nothing, crossed out when the radio is off.
-    readonly property string icon: {
-        if (!wifi)
-            return String.fromCodePoint(connected ? 0xf0200 : 0xf0202); // ethernet, ethernet cable off
-        if (!Networking.wifiEnabled)
-            return String.fromCodePoint(0xf05aa); // wifi off
-        if (!connected)
-            return String.fromCodePoint(0xf092f); // wifi strength outline
-        return String.fromCodePoint([0xf091f, 0xf091f, 0xf0922, 0xf0925, 0xf0928][quality]);
-    }
-
-    // measured while the panel is open; -1 means "not sampled yet"
+    // measured for `device` while the panel is open; -1 means "not sampled yet"
     property real pingMs: -1
     property real packetLoss: -1
     property real rxRate: -1
@@ -98,17 +133,37 @@ Singleton {
 
     readonly property bool polling: expanded && !!device
 
-    onPollingChanged: {
+    onPollingChanged: restart()
+    onDeviceChanged: restart()
+
+    // stale numbers belong to the interface we just left
+    function restart(): void {
         counters = null;
         pingMs = -1;
         packetLoss = -1;
         rxRate = -1;
         txRate = -1;
+        address = "";
+        if (polling)
+            refreshDelay.restart();
     }
 
-    onDeviceChanged: {
-        counters = null;
-        address = "";
+    // one tick late so the `ping`/`ip` command bindings have picked up the new
+    // interface name; also debounces rapid tab clicks
+    Timer {
+        id: refreshDelay
+        interval: 50
+        onTriggered: {
+            root.sampleThroughput();
+            root.measure();
+        }
+    }
+
+    function measure(): void {
+        if (!pingProc.running)
+            pingProc.running = true;
+        if (!addressProc.running)
+            addressProc.running = true;
     }
 
     function formatRate(rate: real): string {
@@ -172,7 +227,8 @@ Singleton {
 
     Process {
         id: pingProc
-        command: ["ping", "-n", "-q", "-c", "3", "-i", "0.2", "-W", "1", "1.1.1.1"]
+        // -I: latency of this interface, not of whatever the default route is
+        command: ["ping", "-n", "-q", "-c", "3", "-i", "0.2", "-W", "1", "-I", root.device?.name ?? "", "1.1.1.1"]
 
         stdout: StdioCollector {
             onStreamFinished: root.parsePing(this.text)
@@ -192,7 +248,6 @@ Singleton {
         interval: 1000
         running: root.polling
         repeat: true
-        triggeredOnStart: true
         onTriggered: root.sampleThroughput()
     }
 
@@ -200,12 +255,6 @@ Singleton {
         interval: 5000
         running: root.polling
         repeat: true
-        triggeredOnStart: true
-        onTriggered: {
-            if (!pingProc.running)
-                pingProc.running = true;
-            if (!addressProc.running)
-                addressProc.running = true;
-        }
+        onTriggered: root.measure()
     }
 }
