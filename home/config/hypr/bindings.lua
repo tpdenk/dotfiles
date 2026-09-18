@@ -43,7 +43,9 @@ local function clipboard(key, text)
         local win = hl.get_active_window()
         local mods = (win and TERMINALS[win.class]) and "CTRL SHIFT" or "CTRL"
         hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "down" }))
-        hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "up" }))
+        hl.timer(function()
+            hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "up" }))
+        end, { timeout = 50, type = "oneshot" })
         hl.exec_cmd("notify-send -a clipboard -e -t 1500 -h string:x-canonical-private-synchronous:clipboard '" .. text .. "'")
         return { ok = true }
     end

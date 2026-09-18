@@ -27,6 +27,7 @@ Rectangle {
             text: root.notification.summary
             textFormat: Text.PlainText
             elide: Text.ElideRight
+            maximumLineCount: 1
             font.family: Theme.fontFamily
             font.pointSize: Theme.fontSize
             color: Theme.brightText
