@@ -53,6 +53,7 @@ wl-clipboard
 wofi
 wpa_supplicant
 xdg-desktop-portal-hyprland
+xdg-terminal-exec
 zoxide
 zram-generator
 zsh
