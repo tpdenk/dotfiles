@@ -1,0 +1,16 @@
+[env]
+TERM = "xterm-256color"
+
+[font]
+normal = { family = "Berkeley Mono" }
+bold = { family = "Berkeley Mono" }
+italic = { family = "Berkeley Mono" }
+size = 9
+
+[window]
+padding.x = 14
+padding.y = 14
+decorations = "None"
+
+[terminal]
+osc52 = "CopyPaste"

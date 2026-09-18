@@ -6,9 +6,11 @@ bazel
 btop
 btrfs-progs
 chromium
+docker
 dust
 efibootmgr
 eza
+fastfetch
 fd
 fzf
 gcc

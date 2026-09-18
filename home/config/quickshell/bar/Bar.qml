@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import QtQuick
 import qs
 
@@ -23,14 +24,34 @@ Scope {
             implicitHeight: 30
             color: HyprColors.shadow
 
-            Text {
-                anchors.centerIn: parent
-                text: root.time
-                color: HyprColors.activeBorder
+            // content area: everything above the accent strip
+            Item {
+                anchors {
+                    top: parent.top
+                    left: parent.left
+                    right: parent.right
+                    bottom: accent.top
+                }
+
+                Workspaces {
+                    anchors {
+                        left: parent.left
+                        verticalCenter: parent.verticalCenter
+                        leftMargin: 8
+                    }
+                    monitor: Hyprland.monitorFor(modelData)
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text: root.time
+                    color: HyprColors.activeBorder
+                }
             }
 
             // first -> last stop of the focused window border gradient
             Rectangle {
+                id: accent
                 anchors {
                     left: parent.left
                     right: parent.right
