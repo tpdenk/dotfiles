@@ -1,0 +1,17 @@
+# User configuration
+
+export LANG=en_US.UTF-8
+export REPORTTIME=10
+
+# Programs / PATH
+
+export EDITOR=ed
+
+# zoxide
+eval "$(zoxide init zsh)"
+
+# Rust
+. "$HOME/.cargo/env"
+
+# Aliases
+alias tmp='cd $(mktemp -d)'

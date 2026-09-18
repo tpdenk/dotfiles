@@ -21,6 +21,10 @@ have() { command -v "$1" >/dev/null 2>&1; }
 [[ $EUID -ne 0 ]] || die "run as your normal user, not root"
 have sudo || die "sudo not installed"
 
+install_rustup() {
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --yes
+}
+
 install_aur_helper() {
 	have "$AUR_HELPER" && { log "$AUR_HELPER present"; return; }
 	log "building $AUR_HELPER"
@@ -110,7 +114,7 @@ case "${1:-all}" in
 	pkgs)     install_pkgs ;;
 	links)    link_dotfiles ;;
 	services) enable_services ;;
-	all)      install_pkgs; link_dotfiles; enable_services
-		log "done — log out and start Hyprland" ;;
+	all)      install_pkgs; link_dotfiles; enable_services; install_rustup
+		log "done. log out and start Hyprland" ;;
 	*)        sed -n '3,9p' "$0"; exit 1 ;;
 esac
