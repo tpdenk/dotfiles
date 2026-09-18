@@ -35,3 +35,19 @@ hl.bind("SUPER + SHIFT + DOWN", hl.dsp.window.swap({ direction = "d" }))
 
 hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
+
+local TERMINALS = { Alacritty = true, kitty = true }
+
+local function clipboard(key, text)
+    return function()
+        local win = hl.get_active_window()
+        local mods = (win and TERMINALS[win.class]) and "CTRL SHIFT" or "CTRL"
+        hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "down" }))
+        hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "up" }))
+        hl.exec_cmd("notify-send -a clipboard -e -t 1500 -h string:x-canonical-private-synchronous:clipboard '" .. text .. "'")
+        return { ok = true }
+    end
+end
+
+hl.bind("SUPER + C", clipboard("c", "Copied to clipboard"))
+hl.bind("SUPER + V", clipboard("v", "Pasted from clipboard"))

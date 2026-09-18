@@ -2,10 +2,12 @@ import Quickshell
 import Quickshell.Io
 import qs.bar
 import qs.launcher
+import qs.notifications
 
 ShellRoot {
     Bar {}
     Launcher {}
+    Notifications {}
 
     IpcHandler {
         target: "shell"

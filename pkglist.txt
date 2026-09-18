@@ -26,7 +26,6 @@ libnotify
 libpulse
 linux
 linux-firmware
-mako
 man-db
 mkinitcpio
 networkmanager
