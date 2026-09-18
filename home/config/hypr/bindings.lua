@@ -1,6 +1,6 @@
 local hl = hl or error("no hl")
 
-hl.bind("SUPER + RETURN", hl.dsp.exec_cmd("alacritty"))
+hl.bind("SUPER + RETURN", hl.dsp.exec_cmd("$HOME/.local/bin/term-here"))
 hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("brave"))
 
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
