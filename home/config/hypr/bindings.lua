@@ -1,6 +1,8 @@
 local hl = hl or error("no hl")
 
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd("alacritty"))
+hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("brave"))
+
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind("SUPER + N", hl.dsp.focus({ workspace = "empty" }))
@@ -9,6 +11,7 @@ hl.bind("SUPER + CTRL + L", hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))
 hl.bind("SUPER + T", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+
 hl.bind("SUPER + LEFT", hl.dsp.focus({ direction = "l" }))
 hl.bind("SUPER + RIGHT", hl.dsp.focus({ direction = "r" }))
 hl.bind("SUPER + UP", hl.dsp.focus({ direction = "u" }))
