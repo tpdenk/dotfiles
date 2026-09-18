@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import Quickshell.Wayland
 import QtQuick
 import qs
 
@@ -16,6 +17,8 @@ Scope {
             id: panel
             required property var modelData
             screen: modelData
+            // matched by the blur layer rule in hyprland.lua
+            WlrLayershell.namespace: "bar"
 
             anchors {
                 top: true
@@ -24,6 +27,7 @@ Scope {
             }
 
             implicitHeight: 30
+            // fully transparent: the compositor blur is the bar's background
             color: "transparent"
 
             // content area: everything above the accent strip
@@ -47,11 +51,13 @@ Scope {
                 Text {
                     anchors.centerIn: parent
                     text: root.time
-                    color: HyprColors.activeBorder
+                    color: Theme.accent
+                    font.family: Theme.fontFamily
+                    font.pointSize: Theme.fontSize
                 }
             }
 
-            // first -> last stop of the focused window border gradient
+            // the focused window border gradient
             Rectangle {
                 id: accent
                 anchors {
@@ -59,11 +65,11 @@ Scope {
                     right: parent.right
                     bottom: parent.bottom
                 }
-                height: HyprColors.borderSize
+                height: Theme.borderSize
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
-                    GradientStop { position: 0; color: HyprColors.activeBorder }
-                    GradientStop { position: 1; color: HyprColors.activeBorderEnd }
+                    GradientStop { position: 0; color: Theme.accent }
+                    GradientStop { position: 1; color: Theme.accentSecondary }
                 }
             }
         }

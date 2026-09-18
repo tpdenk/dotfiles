@@ -47,10 +47,10 @@ Scope {
 
         Rectangle {
             anchors.fill: parent
-            radius: 8
-            color: "#1a1b26"
-            border.width: HyprColors.borderSize
-            border.color: HyprColors.activeBorder
+            radius: Theme.roundingLarge
+            color: Theme.background
+            border.width: Theme.borderSize
+            border.color: Theme.accent
 
             Column {
                 anchors.fill: parent
@@ -60,8 +60,9 @@ Scope {
                 TextInput {
                     id: input
                     width: parent.width
-                    font.pixelSize: 18
-                    color: "#c0caf5"
+                    font.family: Theme.fontFamily
+                    font.pointSize: Theme.h2Size
+                    color: Theme.brightText
                     focus: true
 
                     onTextChanged: list.currentIndex = 0
@@ -75,7 +76,7 @@ Scope {
                         visible: !input.text
                         text: "run..."
                         font: input.font
-                        color: "#565f89"
+                        color: Theme.muted
                     }
                 }
 
@@ -87,8 +88,8 @@ Scope {
                     model: root.matches(input.text)
                     highlightMoveDuration: 0
                     highlight: Rectangle {
-                        radius: 4
-                        color: Qt.alpha(HyprColors.activeBorder, 0.25)
+                        radius: Theme.roundingSmall
+                        color: Qt.alpha(Theme.accent, 0.25)
                     }
 
                     delegate: Text {
@@ -97,8 +98,9 @@ Scope {
                         width: ListView.view.width
                         padding: 6
                         text: modelData.name
-                        font.pixelSize: 15
-                        color: "#c0caf5"
+                        font.family: Theme.fontFamily
+                        font.pointSize: Theme.fontSize
+                        color: Theme.text
 
                         MouseArea {
                             anchors.fill: parent

@@ -1,16 +1,16 @@
 local hl = hl or error("no hl")
+local theme = require("theme")
 
 hl.config({
     general = {
         gaps_in = 2,
         gaps_out = 2,
 
-        border_size = 2,
+        border_size = theme.int("border_size"),
 
         col = {
-            -- the original blue gradient, static: no `borderangle` animates it
-            active_border = { colors = { "rgba(7aa2f7ff)", "rgba(bb9af7ff)" }, angle = 45 },
-            inactive_border = "rgba(414868aa)",
+            active_border = { colors = { theme.get("accent"), theme.get("accent_secondary") }, angle = 45 },
+            inactive_border = theme.rgba("muted", "aa"),
         },
 
         resize_on_border = true,
@@ -26,24 +26,21 @@ hl.config({
         active_opacity = 1.0,
         inactive_opacity = 0.9,
 
-        -- drives `fadeDim` on focus change
         dim_inactive = true,
         dim_strength = 0.25,
 
-        -- drives `fadeShadow`
         shadow = {
             enabled = true,
             range = 12,
             render_power = 3,
-            color = "rgba(1a1b26cc)",
+            color = theme.rgba("background", "cc"),
         },
 
-        -- drives `fadeGlow`; same blue -> purple as the border, just translucent
         glow = {
             enabled = true,
             range = 12,
             render_power = 3,
-            color = { colors = { "rgba(7aa2f766)", "rgba(bb9af766)" }, angle = 45 },
+            color = { colors = { theme.rgba("accent", "66"), theme.rgba("accent_secondary", "66") }, angle = 45 },
         },
 
         blur = {
@@ -63,5 +60,6 @@ hl.config({
     dwindle = {
         preserve_split = true,
         use_active_for_splits = true,
+        force_split = 2, -- right bottom
     },
 })
