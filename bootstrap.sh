@@ -28,25 +28,27 @@ have sudo || die "sudo not installed"
 install_editor() {
 	local EDITOR=ed
 	local EDITOR_REPO="git@github.com:tpdenk/ed.git"
-	pushd $HOME/Development/tpdenk
+	log "editor"
+	have cargo || die "cargo not on PATH, run ./bootstrap.sh rustup first"
+	mkdir -p "$HOME/Development/tpdenk"
+	pushd "$HOME/Development/tpdenk" >/dev/null
 	if [[ -e "$EDITOR" ]]; then
-		pushd "$EDITOR"
-		git pull
-		popd
+		git -C "$EDITOR" pull
 	else
 		git clone "$EDITOR_REPO"
 	fi
-	pushd "$EDITOR"
-	cargo install --path .
-	popd
-	popd
+	cargo install --path "$EDITOR"
+	popd >/dev/null
 }
 
 install_omz() {
+	log "oh-my-zsh"
 	if [[ ! -e "$HOME/.oh-my-zsh" ]]; then
-		KEEP_ZSHRC=yes RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+		local installer
+		installer="$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || die "could not download the oh-my-zsh installer"
+		KEEP_ZSHRC=yes RUNZSH=no sh -c "$installer"
 	else
-		$HOME/.oh-my-zsh/tools/upgrade.sh
+		"$HOME/.oh-my-zsh/tools/upgrade.sh"
 	fi
 }
 
@@ -98,6 +100,7 @@ install_rustup() {
 		rustup self update
 	else
 		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --yes
+		export PATH="$HOME/.cargo/bin:$PATH"
 	fi
 }
 
