@@ -7,6 +7,7 @@
 #   ./bootstrap.sh pkgs       just package installs
 #   ./bootstrap.sh links      just dotfile symlinks
 #   ./bootstrap.sh services   just systemctl enables
+#   ./bootstrap.sh ssh        just the ssh key setup
 
 set -euo pipefail
 
@@ -20,6 +21,67 @@ have() { command -v "$1" >/dev/null 2>&1; }
 
 [[ $EUID -ne 0 ]] || die "run as your normal user, not root"
 have sudo || die "sudo not installed"
+
+install_omz() {
+	rm -rf ~/.oh-my-zsh
+	KEEP_ZSHRC=yes RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+}
+
+github_ssh_ok() {
+	local out
+	out="$(ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -T git@github.com 2>&1 || true)"
+	[[ "$out" == *"successfully authenticated"* ]]
+}
+
+setup_ssh() {
+	local key="$HOME/.ssh/id_ed25519"
+	local st=0
+
+	have ssh-keygen || die "ssh-keygen missing, install openssh first"
+
+	# An existing key is never regenerated, moved, or overwritten.
+	if [[ -f "$key" ]]; then
+		log "ssh key present, leaving it untouched: $key"
+	else
+		log "generating an ed25519 key, this prompts for a passphrase"
+		mkdir -p "$HOME/.ssh"
+		chmod 700 "$HOME/.ssh"
+		ssh-keygen -t ed25519 -a 100 -C "$USER@$(uname -n)" -f "$key"
+	fi
+
+	# ssh-add -l exits 1 for an empty agent and 2 when no agent is reachable.
+	ssh-add -l >/dev/null 2>&1 || st=$?
+	case $st in
+		2) log "starting an ssh-agent for this run"
+		   eval "$(ssh-agent -s)" >/dev/null
+		   ssh-add "$key" || warn "ssh-add failed, continuing" ;;
+		1) ssh-add "$key" || warn "ssh-add failed, continuing" ;;
+	esac
+
+	if github_ssh_ok; then
+		log "github ssh auth ok"
+		return
+	fi
+
+	log "add this public key at https://github.com/settings/ssh/new"
+	printf '\n%s\n\n' "$(< "$key.pub")"
+	read -rp "press enter once GitHub has the key... " _
+	github_ssh_ok || die "github still refuses the key, check https://github.com/settings/keys"
+}
+
+install_shell() {
+	mkdir -p $HOME/Development/tpdenk
+	pushd $HOME/Development/tpdenk
+	git clone git@github.com:tpdenk/shell.git --depth 1
+	pushd shell
+	bazel build -c opt //bar //launcher //notification
+	mkdir -p ~/.local/bin
+	install -Dm755 bazel-bin/bar/bar ~/.local/bin/shell-bar
+	install -Dm755 bazel-bin/launcher/launcher ~/.local/bin/shell-launcher
+	install -Dm755 bazel-bin/notification/notification ~/.local/bin/shell-notification
+	popd
+	popd
+}
 
 install_rustup() {
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --yes
@@ -114,7 +176,15 @@ case "${1:-all}" in
 	pkgs)     install_pkgs ;;
 	links)    link_dotfiles ;;
 	services) enable_services ;;
-	all)      install_pkgs; link_dotfiles; enable_services; install_rustup
+	ssh)      setup_ssh ;;
+	all)
+              install_pkgs;
+              link_dotfiles;
+              enable_services;
+              install_rustup;
+              install_omz;
+              setup_ssh;
+              install_shell;
 		log "done. log out and start Hyprland" ;;
-	*)        sed -n '3,9p' "$0"; exit 1 ;;
+	*)        sed -n '3,10p' "$0"; exit 1 ;;
 esac

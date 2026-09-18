@@ -4,8 +4,11 @@ bazel
 btop
 btrfs-progs
 chromium
+dust
 efibootmgr
+fd
 gcc
+git
 gst-plugin-pipewire
 hyprland
 kitty
@@ -22,8 +25,11 @@ pipewire-alsa
 pipewire-jack
 pipewire-pulse
 polkit-kde-agent
+ripgrep
+sd
 sudo
 terminus-font
+tree
 vim
 vulkan-swrast
 waybar
@@ -33,4 +39,6 @@ wl-clipboard
 wofi
 wpa_supplicant
 xdg-desktop-portal-hyprland
+zoxide
 zram-generator
+zsh
