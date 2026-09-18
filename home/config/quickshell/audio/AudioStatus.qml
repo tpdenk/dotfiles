@@ -54,6 +54,27 @@ Singleton {
         node.audio.muted = m;
     }
 
+    // one detent of the volume keys, and one press of a keyboard's volume
+    // rocker
+    readonly property real volumeStep: 0.05
+
+    // turning it up while muted means "make it audible", so stepping up
+    // unmutes; stepping down leaves mute alone, as silence is what was asked
+    // for either way
+    function stepVolume(node: var, delta: real): void {
+        if (!node?.audio)
+            return;
+        setVolume(node, node.audio.volume + delta);
+        if (delta > 0)
+            setMuted(node, false);
+    }
+
+    function toggleMuted(node: var): void {
+        if (!node?.audio)
+            return;
+        setMuted(node, !node.audio.muted);
+    }
+
     // the preferred* properties are the writable ones; default* only report
     // what PipeWire settled on
     function makeDefault(node: var): void {

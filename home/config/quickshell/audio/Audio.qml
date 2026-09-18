@@ -29,5 +29,17 @@ Scope {
         function close(): void {
             Panels.close("audio");
         }
+
+        // media keys: they act on the default output, the same device the bar
+        // indicator and the panel's first slider show
+        function volumeUp(): void {
+            AudioStatus.stepVolume(AudioStatus.sink, AudioStatus.volumeStep);
+        }
+        function volumeDown(): void {
+            AudioStatus.stepVolume(AudioStatus.sink, -AudioStatus.volumeStep);
+        }
+        function toggleMute(): void {
+            AudioStatus.toggleMuted(AudioStatus.sink);
+        }
     }
 }

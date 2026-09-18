@@ -5,8 +5,16 @@ hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("brave"))
 
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 hl.bind("SUPER + CTRL + W", hl.dsp.exec_cmd("qs ipc call network toggle"))
+hl.bind("SUPER + CTRL + B", hl.dsp.exec_cmd("qs ipc call bluetooth toggle"))
+hl.bind("SUPER + CTRL + A", hl.dsp.exec_cmd("qs ipc call audio toggle"))
 hl.bind("SUPER + CTRL + T", hl.dsp.exec_cmd("alacritty -e btop"))
 hl.bind("SUPER + CTRL + L", hl.dsp.exec_cmd("loginctl lock-session"))
+
+-- media keys, including the rotary encoder's volume detents; locked so they
+-- keep working on the lock screen, repeating so holding a key keeps stepping
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("qs ipc call audio volumeUp"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("qs ipc call audio volumeDown"), { locked = true, repeating = true })
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd("qs ipc call audio toggleMute"), { locked = true })
 
 
 hl.bind("SUPER + W", hl.dsp.window.close())
