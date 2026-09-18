@@ -150,7 +150,7 @@ link_dotfiles() {
 }
 
 enable_services() {
-	local sys=( NetworkManager sshd )
+	local sys=( NetworkManager sshd docker )
 	local user=( pipewire pipewire-pulse wireplumber )
 	local s
 
@@ -159,6 +159,12 @@ enable_services() {
 		systemctl list-unit-files "$s.service" >/dev/null 2>&1 || { warn "no $s.service"; continue; }
 		sudo systemctl enable --now "$s.service"
 	done
+
+	# docker group is root-equivalent, takes effect after re-login
+	if getent group docker >/dev/null && ! id -nG "$USER" | grep -qw docker; then
+		sudo usermod -aG docker "$USER"
+		echo "  added $USER to docker group (re-login to apply)"
+	fi
 	
 	sudo systemctl set-default graphical.target
 
