@@ -48,7 +48,7 @@ Scope {
         Rectangle {
             anchors.fill: parent
             radius: 8
-            color: HyprColors.shadow
+            color: "#1a1b26"
             border.width: HyprColors.borderSize
             border.color: HyprColors.activeBorder
 

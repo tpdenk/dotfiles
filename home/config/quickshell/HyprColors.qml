@@ -9,7 +9,6 @@ Singleton {
 
     property list<color> activeBorderStops
     property color inactiveBorder
-    property color shadow
     property int borderSize
 
     readonly property color activeBorder: activeBorderStops.length ? activeBorderStops[0] : "transparent"
@@ -24,7 +23,7 @@ Singleton {
     Process {
         id: query
         running: true
-        command: ["hyprctl", "-j", "--batch", "getoption general:col.active_border;" + "getoption general:col.inactive_border;" + "getoption decoration:shadow:color;" + "getoption general:border_size"]
+        command: ["hyprctl", "-j", "--batch", "getoption general:col.active_border;" + "getoption general:col.inactive_border;" + "getoption general:border_size"]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -38,9 +37,6 @@ Singleton {
                         break;
                     case "general:col.inactive_border":
                         root.inactiveBorder = root.stops(opt.gradient)[0];
-                        break;
-                    case "decoration:shadow:color":
-                        root.shadow = root.stops(opt.gradient)[0];
                         break;
                     case "general:border_size":
                         root.borderSize = opt.int;

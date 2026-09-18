@@ -24,7 +24,7 @@ Scope {
             }
 
             implicitHeight: 30
-            color: HyprColors.shadow
+            color: "transparent"
 
             // content area: everything above the accent strip
             Item {
