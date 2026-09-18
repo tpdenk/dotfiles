@@ -90,13 +90,17 @@ setup_ssh() {
 
 	if github_ssh_ok; then
 		log "github ssh auth ok"
-		return
+	else
+		log "add this public key at https://github.com/settings/ssh/new"
+		printf '\n%s\n\n' "$(< "$key.pub")"
+		read -rp "press enter once GitHub has the key... " _
+		github_ssh_ok || die "github still refuses the key, check https://github.com/settings/keys"
 	fi
 
-	log "add this public key at https://github.com/settings/ssh/new"
-	printf '\n%s\n\n' "$(< "$key.pub")"
-	read -rp "press enter once GitHub has the key... " _
-	github_ssh_ok || die "github still refuses the key, check https://github.com/settings/keys"
+	if have ufw; then
+		log "configure firewall for ssh"
+		sudo ufw allow ssh
+	fi
 }
 
 install_rustup() {
