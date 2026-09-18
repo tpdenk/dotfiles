@@ -93,11 +93,11 @@ setup_ssh() {
 }
 
 install_rustup() {
-	have "rustup"
-	if [[ -z $? ]]; then
-		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --yes
-	else
+	log "rustup"
+	if have rustup; then
 		rustup self update
+	else
+		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --yes
 	fi
 }
 
