@@ -17,6 +17,7 @@ gcc
 git
 gst-plugin-pipewire
 hexyl
+hypridle
 hyprland
 hyprlock
 hyprpaper

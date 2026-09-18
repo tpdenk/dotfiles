@@ -151,7 +151,7 @@ link_dotfiles() {
 
 enable_services() {
 	local sys=( NetworkManager sshd docker )
-	local user=( pipewire pipewire-pulse wireplumber )
+	local user=( pipewire pipewire-pulse wireplumber hypridle )
 	local s
 
 	log "system services"
