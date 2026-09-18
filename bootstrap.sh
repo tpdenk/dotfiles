@@ -10,6 +10,7 @@
 #   ./bootstrap.sh rustup     just the rust toolchain
 #   ./bootstrap.sh omz        just oh-my-zsh
 #   ./bootstrap.sh ssh        just the ssh key setup
+#   ./bootstrap.sh editor     just the editor installation
 
 set -euo pipefail
 
@@ -23,6 +24,23 @@ have() { command -v "$1" >/dev/null 2>&1; }
 
 [[ $EUID -ne 0 ]] || die "run as your normal user, not root"
 have sudo || die "sudo not installed"
+
+install_editor() {
+	local EDITOR=ed
+	local EDITOR_REPO="git@github.com:tpdenk/ed.git"
+	pushd $HOME/Development/tpdenk
+	if [[ -e "$EDITOR" ]]; then
+		pushd "$EDITOR"
+		git pull
+		popd
+	else
+		git clone "$EDITOR_REPO"
+	fi
+	pushd "$EDITOR"
+	cargo install --path .
+	popd
+	popd
+}
 
 install_omz() {
 	if [[ ! -e "$HOME/.oh-my-zsh" ]]; then
@@ -196,6 +214,7 @@ case "${1:-all}" in
 	rustup)   install_rustup ;;
 	omz)      install_omz ;;
 	ssh)      setup_ssh ;;
+	editor)   install_editor ;;
 	all)
 		install_pkgs
 		link_dotfiles
@@ -203,6 +222,7 @@ case "${1:-all}" in
 		install_rustup
 		install_omz
 		setup_ssh
+		install_editor
 		log "done. log out and back in on tty1, uwsm starts Hyprland" ;;
 	*)        sed -n '3,12p' "$0"; exit 1 ;;
 esac
