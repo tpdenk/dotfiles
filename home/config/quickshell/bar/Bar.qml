@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 import QtQuick
 import qs
+import qs.network
 
 Scope {
     id: root
@@ -54,6 +55,14 @@ Scope {
                     color: Theme.accent
                     font.family: Theme.fontFamily
                     font.pointSize: Theme.fontSize
+                }
+
+                NetworkIndicator {
+                    anchors {
+                        right: parent.right
+                        verticalCenter: parent.verticalCenter
+                        rightMargin: 8
+                    }
                 }
             }
 

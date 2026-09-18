@@ -2,11 +2,13 @@ import Quickshell
 import Quickshell.Io
 import qs.bar
 import qs.launcher
+import qs.network
 import qs.notifications
 
 ShellRoot {
     Bar {}
     Launcher {}
+    Network {}
     Notifications {}
 
     IpcHandler {

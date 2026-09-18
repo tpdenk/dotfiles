@@ -26,6 +26,7 @@ Singleton {
 
     readonly property string fontFamily: vars.font_family ?? ""
     readonly property int fontSize: int("font_size")
+    readonly property int h1Size: int("h1_size")
     readonly property int h2Size: int("h2_size")
 
     FileView {
