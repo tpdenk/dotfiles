@@ -12,9 +12,10 @@ Scope {
 
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "network"
-        // never takes the keyboard: the panel can stay open while you type in
+        // takes the keyboard only while a wifi passphrase is being entered;
+        // the rest of the time the panel can sit open while you type in
         // another window
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: NetworkStatus.pendingNetwork ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         exclusionMode: ExclusionMode.Ignore
 
         // below the bar, aligned with the indicator that opens it
