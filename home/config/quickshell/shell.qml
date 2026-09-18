@@ -6,6 +6,7 @@ import qs.bluetooth
 import qs.launcher
 import qs.network
 import qs.notifications
+import qs.power
 
 ShellRoot {
     Bar {}
@@ -14,6 +15,7 @@ ShellRoot {
     Launcher {}
     Network {}
     Notifications {}
+    Power {}
 
     IpcHandler {
         target: "shell"

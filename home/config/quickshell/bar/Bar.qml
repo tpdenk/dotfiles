@@ -8,6 +8,7 @@ import qs
 import qs.audio
 import qs.bluetooth
 import qs.network
+import qs.power
 
 Scope {
     id: root
@@ -59,7 +60,7 @@ Scope {
                     font.pointSize: Theme.fontSize
                 }
 
-                // the three dropdown indicators share the top-right corner
+                // the dropdown indicators share the top-right corner
                 Row {
                     anchors {
                         right: parent.right
@@ -77,6 +78,10 @@ Scope {
                     }
 
                     NetworkIndicator {
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    PowerIndicator {
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }

@@ -180,7 +180,7 @@ link_dotfiles() {
 }
 
 enable_services() {
-	local sys=( NetworkManager sshd docker )
+	local sys=( NetworkManager sshd docker power-profiles-daemon )
 	local user=( pipewire pipewire-pulse wireplumber hypridle )
 	local s
 
