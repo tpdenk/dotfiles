@@ -15,6 +15,6 @@ Text {
             fill: parent
             margins: -4
         }
-        onClicked: NetworkStatus.expanded = !NetworkStatus.expanded
+        onClicked: Panels.toggle("network")
     }
 }

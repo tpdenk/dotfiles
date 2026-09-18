@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Networking
 import QtQuick
+import qs
 
 // State of the machine's network interfaces: NetworkManager facts from
 // Quickshell.Networking, plus latency/throughput measured for whichever
@@ -12,7 +13,7 @@ Singleton {
 
     // whether the details panel is open; metric polling and wifi scanning
     // both follow it
-    property bool expanded: false
+    readonly property bool expanded: Panels.open === "network"
 
     readonly property var devices: Networking.devices.values.filter(d => d.type === DeviceType.Wired || d.type === DeviceType.Wifi)
 

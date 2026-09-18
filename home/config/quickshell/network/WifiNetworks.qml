@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import QtQuick
 import qs
+import qs.widgets
 
 // Access points seen by the selected wifi interface. Click one to join; a
 // secured network we hold no secrets for asks for its passphrase inline.
@@ -10,89 +11,37 @@ Column {
 
     spacing: 6
 
-    Text {
-        text: NetworkStatus.radioEnabled ? "Networks" : "Wi-Fi radio off"
-        font.family: Theme.fontFamily
-        font.pointSize: Theme.fontSize
-        color: Theme.muted
-    }
-
-    ListView {
-        id: list
+    SelectList {
         width: parent.width
-        // a handful of rows, then scroll: the panel must not grow unbounded
-        height: Math.min(contentHeight, 132)
-        visible: NetworkStatus.radioEnabled && count > 0
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
+        title: NetworkStatus.radioEnabled ? "Networks" : "Wi-Fi radio off"
+        placeholder: NetworkStatus.radioEnabled ? "Scanning…" : ""
 
         model: ScriptModel {
-            values: NetworkStatus.wifiNetworks
+            values: NetworkStatus.radioEnabled ? NetworkStatus.wifiNetworks : []
         }
 
-        delegate: Rectangle {
+        delegate: SelectRow {
             id: row
             required property var modelData
 
-            width: list.width
-            height: 24
-            radius: Theme.roundingSmall
-            color: hover.containsMouse ? Qt.alpha(Theme.accent, 0.15) : "transparent"
+            width: ListView.view.width
+            label: modelData.name
+            labelColor: modelData.connected ? Theme.accent : modelData.known ? Theme.brightText : Theme.text
+            onClicked: NetworkStatus.join(row.modelData)
 
             Text {
-                anchors {
-                    left: parent.left
-                    leftMargin: 6
-                    right: meta.left
-                    rightMargin: 8
-                    verticalCenter: parent.verticalCenter
-                }
-                text: row.modelData.name
-                elide: Text.ElideRight
+                anchors.verticalCenter: parent.verticalCenter
+                text: NetworkStatus.isOpen(row.modelData) ? "open" : NetworkStatus.securityOf(row.modelData)
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontSize
-                color: row.modelData.connected ? Theme.accent : row.modelData.known ? Theme.brightText : Theme.text
+                font.pointSize: Theme.smallSize
+                color: Theme.muted
             }
 
-            Row {
-                id: meta
-                anchors {
-                    right: parent.right
-                    rightMargin: 6
-                    verticalCenter: parent.verticalCenter
-                }
-                spacing: 6
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: NetworkStatus.isOpen(row.modelData) ? "open" : NetworkStatus.securityOf(row.modelData)
-                    font.family: Theme.fontFamily
-                    font.pointSize: Theme.smallSize
-                    color: Theme.muted
-                }
-
-                SignalBars {
-                    anchors.verticalCenter: parent.verticalCenter
-                    level: Math.max(1, Math.ceil(row.modelData.signalStrength * 4))
-                }
-            }
-
-            MouseArea {
-                id: hover
-                anchors.fill: parent
-                hoverEnabled: true
-                onClicked: NetworkStatus.join(row.modelData)
+            SignalBars {
+                anchors.verticalCenter: parent.verticalCenter
+                level: Math.max(1, Math.ceil(row.modelData.signalStrength * 4))
             }
         }
-    }
-
-    Text {
-        width: parent.width
-        visible: NetworkStatus.radioEnabled && list.count === 0
-        text: "Scanning…"
-        font.family: Theme.fontFamily
-        font.pointSize: Theme.fontSize
-        color: Theme.muted
     }
 
     // passphrase entry; the panel takes keyboard focus only while this is up

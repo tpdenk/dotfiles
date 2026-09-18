@@ -4,10 +4,13 @@ hl.bind("SUPER + RETURN", hl.dsp.exec_cmd("$HOME/.local/bin/term-here"))
 hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("brave"))
 
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
-hl.bind("SUPER + W", hl.dsp.window.close())
-hl.bind("SUPER + N", hl.dsp.focus({ workspace = "empty" }))
+hl.bind("SUPER + CTRL + W", hl.dsp.exec_cmd("qs ipc call network toggle"))
 hl.bind("SUPER + CTRL + T", hl.dsp.exec_cmd("alacritty -e btop"))
 hl.bind("SUPER + CTRL + L", hl.dsp.exec_cmd("loginctl lock-session"))
+
+
+hl.bind("SUPER + W", hl.dsp.window.close())
+hl.bind("SUPER + N", hl.dsp.focus({ workspace = "empty" }))
 hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))
 hl.bind("SUPER + T", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }))

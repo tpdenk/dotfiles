@@ -5,6 +5,8 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 import QtQuick
 import qs
+import qs.audio
+import qs.bluetooth
 import qs.network
 
 Scope {
@@ -57,11 +59,25 @@ Scope {
                     font.pointSize: Theme.fontSize
                 }
 
-                NetworkIndicator {
+                // the three dropdown indicators share the top-right corner
+                Row {
                     anchors {
                         right: parent.right
                         verticalCenter: parent.verticalCenter
                         rightMargin: 8
+                    }
+                    spacing: 10
+
+                    AudioIndicator {
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    BluetoothIndicator {
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    NetworkIndicator {
+                        anchors.verticalCenter: parent.verticalCenter
                     }
                 }
             }
