@@ -5,7 +5,6 @@ bat
 bazel
 btop
 btrfs-progs
-chromium
 docker
 dust
 efibootmgr
