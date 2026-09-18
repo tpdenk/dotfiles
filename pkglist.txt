@@ -18,6 +18,7 @@ git
 gst-plugin-pipewire
 hexyl
 hyprland
+hyprlock
 hyprpaper
 kitty
 libnotify
