@@ -1,1 +1,2 @@
+slack-desktop
 xdg-terminal-exec

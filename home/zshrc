@@ -25,3 +25,4 @@ eval "$(zoxide init zsh)"
 
 # Aliases
 alias tmp='cd $(mktemp -d)'
+alias ls='eza'

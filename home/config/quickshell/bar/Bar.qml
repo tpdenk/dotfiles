@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import qs
 
 Scope {
     id: root
@@ -20,10 +21,27 @@ Scope {
             }
 
             implicitHeight: 30
+            color: HyprColors.shadow
 
             Text {
                 anchors.centerIn: parent
                 text: root.time
+                color: HyprColors.activeBorder
+            }
+
+            // first -> last stop of the focused window border gradient
+            Rectangle {
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    bottom: parent.bottom
+                }
+                height: HyprColors.borderSize
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0; color: HyprColors.activeBorder }
+                    GradientStop { position: 1; color: HyprColors.activeBorderEnd }
+                }
             }
         }
     }
@@ -43,16 +61,5 @@ Scope {
         running: true
         repeat: true
         onTriggered: dateProc.running = true
-    }
-
-    IpcHandler {
-        target: "shell"
-
-        function reload(): void {
-            Quickshell.reload(false);
-        }
-        function hardReload(): void {
-            Quickshell.reload(true);
-        }
     }
 }

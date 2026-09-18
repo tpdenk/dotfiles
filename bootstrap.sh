@@ -111,7 +111,6 @@ install_pkgs() {
 
 link_one() {
 	local src="$1" dest="$2"
-
 	if [[ -L "$dest" ]]; then
 		[[ "$(readlink -f "$dest")" == "$(readlink -f "$src")" ]] && return
 		rm "$dest"
@@ -144,7 +143,9 @@ link_dotfiles() {
 	for src in "$DOTFILES"/home/local/bin/*; do
 		[[ -f "$src" ]] || continue
 		name="$(basename "$src")"
-		link_one "$src" "$HOME/.local/bin/${name}"
+		dest_name="$HOME/.local/bin/${name%.*}"
+		link_one "$src" "${dest_name}"
+		chmod +x "${dest_name}"
 	done
 }
 

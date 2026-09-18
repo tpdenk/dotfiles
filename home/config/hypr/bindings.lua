@@ -1,6 +1,7 @@
 local hl = hl or error("no hl")
 
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd("alacritty"))
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind("SUPER + N", hl.dsp.focus({ workspace = "empty" }))
 hl.bind("SUPER + CTRL + T", hl.dsp.exec_cmd("alacritty -e btop"))
