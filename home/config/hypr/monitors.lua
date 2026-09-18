@@ -1,3 +1,5 @@
+local hl = hl or error("no hl")
+
 hl.monitor({
     output = "Virtual-1",
     mode = "2880x1800@120",

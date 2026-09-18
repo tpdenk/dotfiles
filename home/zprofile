@@ -1,0 +1,5 @@
+# Start the Wayland session on tty1 login. uwsm replaces the login shell,
+# so logging out of Hyprland returns to the getty prompt.
+if uwsm check may-start; then
+	exec uwsm start hyprland.desktop
+fi

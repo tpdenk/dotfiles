@@ -1,3 +1,5 @@
+local hl = hl or error("no hl")
+
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd("alacritty"))
 hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind("SUPER + N", hl.dsp.focus({ workspace = "empty" }))

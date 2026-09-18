@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 #
-# bootstrap.sh — take a fresh minimal Arch install to a working desktop.
-# Run as your normal user (not root). Idempotent: safe to re-run.
+# bootstrap.sh: take a fresh minimal Arch install to a working desktop.
+# Run as your normal user (not root). Idempotent.
 #
-#   ./bootstrap.sh            everything
+#   ./bootstrap.sh            everything, in the order below
 #   ./bootstrap.sh pkgs       just package installs
 #   ./bootstrap.sh links      just dotfile symlinks
 #   ./bootstrap.sh services   just systemctl enables
+#   ./bootstrap.sh rustup     just the rust toolchain
+#   ./bootstrap.sh omz        just oh-my-zsh
 #   ./bootstrap.sh ssh        just the ssh key setup
 
 set -euo pipefail
@@ -23,8 +25,11 @@ have() { command -v "$1" >/dev/null 2>&1; }
 have sudo || die "sudo not installed"
 
 install_omz() {
-	rm -rf ~/.oh-my-zsh
-	KEEP_ZSHRC=yes RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+	if [[ ! -e "$HOME/.oh-my-zsh" ]]; then
+		KEEP_ZSHRC=yes RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+	else
+		$HOME/.oh-my-zsh/tools/upgrade.sh
+	fi
 }
 
 github_ssh_ok() {
@@ -69,22 +74,13 @@ setup_ssh() {
 	github_ssh_ok || die "github still refuses the key, check https://github.com/settings/keys"
 }
 
-install_shell() {
-	mkdir -p $HOME/Development/tpdenk
-	pushd $HOME/Development/tpdenk
-	git clone git@github.com:tpdenk/shell.git --depth 1
-	pushd shell
-	bazel build -c opt //bar //launcher //notification
-	mkdir -p ~/.local/bin
-	install -Dm755 bazel-bin/bar/bar ~/.local/bin/shell-bar
-	install -Dm755 bazel-bin/launcher/launcher ~/.local/bin/shell-launcher
-	install -Dm755 bazel-bin/notification/notification ~/.local/bin/shell-notification
-	popd
-	popd
-}
-
 install_rustup() {
-	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --yes
+	have "rustup"
+	if [[ -z $? ]]; then
+		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --yes
+	else
+		rustup self update
+	fi
 }
 
 install_aur_helper() {
@@ -113,44 +109,42 @@ install_pkgs() {
 	fi
 }
 
+link_one() {
+	local src="$1" dest="$2"
+
+	if [[ -L "$dest" ]]; then
+		[[ "$(readlink -f "$dest")" == "$(readlink -f "$src")" ]] && return
+		rm "$dest"
+	elif [[ -e "$dest" ]]; then
+		mkdir -p "$backup"
+		warn "backing up existing $dest -> $backup/$(basename "$dest")"
+		mv "$dest" "$backup/$(basename "$dest")"
+	fi
+
+	ln -s "$src" "$dest"
+	echo "  linked ${dest#"$HOME"/}"
+}
+
 link_dotfiles() {
-	local src dest name backup
+	local src name backup
 	backup="$HOME/.config-backup-$(date +%Y%m%d%H%M%S)"
 
-	mkdir -p "$HOME/.config"
+	mkdir -p "$HOME/.config" "$HOME/.local/bin"
 
 	for src in "$DOTFILES"/home/config/*/; do
 		[[ -d "$src" ]] || continue
-		name="$(basename "$src")"
-		dest="$HOME/.config/$name"
-
-		if [[ -L "$dest" ]]; then
-			[[ "$(readlink -f "$dest")" == "$(readlink -f "$src")" ]] && continue
-			rm "$dest"
-		elif [[ -e "$dest" ]]; then
-			mkdir -p "$backup"
-			warn "backing up existing $dest -> $backup/$name"
-			mv "$dest" "$backup/$name"
-		fi
-
-		ln -s "${src%/}" "$dest"
-		echo "  linked $name"
+		link_one "${src%/}" "$HOME/.config/$(basename "$src")"
 	done
 
 	for src in "$DOTFILES"/home/*; do
 		[[ -f "$src" ]] || continue
+		link_one "$src" "$HOME/.$(basename "$src")"
+	done
+
+	for src in "$DOTFILES"/home/local/bin/*; do
+		[[ -f "$src" ]] || continue
 		name="$(basename "$src")"
-		dest="$HOME/.$name"
-		if [[ -L "$dest" ]]; then
-			[[ "$(readlink -f "$dest")" == "$(readlink -f "$src")" ]] && continue
-			rm "$dest"
-		elif [[ -e "$dest" ]]; then
-			mkdir -p "$backup"
-			warn "backing up existing $dest -> $backup/.$name"
-			mv "$dest" "$backup/.$name"
-		fi
-		ln -s "$src" "$dest"
-		echo "  linked .$name"
+		link_one "$src" "$HOME/.local/bin/${name}"
 	done
 }
 
@@ -164,27 +158,44 @@ enable_services() {
 		systemctl list-unit-files "$s.service" >/dev/null 2>&1 || { warn "no $s.service"; continue; }
 		sudo systemctl enable --now "$s.service"
 	done
+	
+	sudo systemctl set-default graphical.target
 
 	log "user services"
 	for s in "${user[@]}"; do
 		systemctl --user list-unit-files "$s.service" >/dev/null 2>&1 || { warn "no user $s.service"; continue; }
 		systemctl --user enable --now "$s.service"
 	done
+
+	log "dotfiles user units"
+	for s in "$DOTFILES"/home/systemd/user/*.service; do
+		[[ -f "$s" ]] || continue
+		systemctl --user enable "$s"
+		echo "  enabled $(basename "$s")"
+	done
+	systemctl --user daemon-reload
+	if systemctl --user is-active -q graphical-session.target; then
+		for s in "$DOTFILES"/home/systemd/user/*.service; do
+			[[ -f "$s" ]] || continue
+			systemctl --user try-restart "$(basename "$s")"
+		done
+	fi
 }
 
 case "${1:-all}" in
 	pkgs)     install_pkgs ;;
 	links)    link_dotfiles ;;
 	services) enable_services ;;
+	rustup)   install_rustup ;;
+	omz)      install_omz ;;
 	ssh)      setup_ssh ;;
 	all)
-              install_pkgs;
-              link_dotfiles;
-              enable_services;
-              install_rustup;
-              install_omz;
-              setup_ssh;
-              install_shell;
-		log "done. log out and start Hyprland" ;;
-	*)        sed -n '3,10p' "$0"; exit 1 ;;
+		install_pkgs
+		link_dotfiles
+		enable_services
+		install_rustup
+		install_omz
+		setup_ssh
+		log "done. log out and back in on tty1, uwsm starts Hyprland" ;;
+	*)        sed -n '3,12p' "$0"; exit 1 ;;
 esac

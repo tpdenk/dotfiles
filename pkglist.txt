@@ -1,5 +1,6 @@
 alacritty
 base
+base-devel
 bazel
 btop
 btrfs-progs
@@ -17,6 +18,7 @@ libpulse
 linux
 linux-firmware
 mako
+man-db
 mkinitcpio
 networkmanager
 openssh
@@ -24,12 +26,15 @@ pipewire
 pipewire-alsa
 pipewire-jack
 pipewire-pulse
+pkgconf
 polkit-kde-agent
+quickshell
 ripgrep
 sd
 sudo
 terminus-font
 tree
+uwsm
 vim
 vulkan-swrast
 waybar

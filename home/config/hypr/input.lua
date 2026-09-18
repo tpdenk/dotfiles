@@ -1,3 +1,5 @@
+local hl = hl or error("no hl")
+
 hl.config({
     input = {
         kb_layout = "us",
