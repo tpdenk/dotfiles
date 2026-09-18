@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
@@ -11,7 +12,8 @@ Scope {
     Variants {
         model: Quickshell.screens
 
-        PanelWindow {
+        PanelWindow { // qmllint disable uncreatable-type
+            id: panel
             required property var modelData
             screen: modelData
 
@@ -39,7 +41,7 @@ Scope {
                         verticalCenter: parent.verticalCenter
                         leftMargin: 8
                     }
-                    monitor: Hyprland.monitorFor(modelData)
+                    monitor: Hyprland.monitorFor(panel.screen)
                 }
 
                 Text {

@@ -24,7 +24,7 @@ Scope {
         win.visible = false;
     }
 
-    PanelWindow {
+    PanelWindow { // qmllint disable uncreatable-type
         id: win
         visible: false
 
