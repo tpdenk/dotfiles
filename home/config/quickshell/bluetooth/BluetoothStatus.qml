@@ -96,6 +96,21 @@ Singleton {
 
     readonly property string icon: String.fromCodePoint(!present || !enabled ? 0xf00b2 : connectedCount > 0 ? 0xf00b1 : 0xf00af) // bluetooth off, bluetooth connect, bluetooth
 
+    // what the controller is doing, in the width of a bar pill: the device on
+    // the other end when there is exactly one, a count when there are more
+    readonly property string barLabel: {
+        if (!present)
+            return "None";
+        if (!enabled)
+            return "Off";
+        const connected = devices.filter(d => d.connected);
+        if (connected.length === 1)
+            return label(connected[0]);
+        if (connected.length > 1)
+            return `${connected.length} devices`;
+        return "On";
+    }
+
     // --- visibility and scanning: only while the dialog is on screen ---
 
     // the dialog's lifetime is the visibility window, so the timeouts are 0

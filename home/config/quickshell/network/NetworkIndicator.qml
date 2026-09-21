@@ -1,20 +1,18 @@
-import QtQuick
 import qs
+import qs.widgets
 
-// Bar icon for the primary connection; click toggles the details panel.
-Text {
+// Bar pill for the primary connection: its icon and what it is connected to.
+// Click toggles the details panel.
+Pill {
     id: root
 
-    text: NetworkStatus.icon
-    font.family: Theme.fontFamily
-    font.pointSize: Theme.h1Size
-    color: NetworkStatus.expanded ? Theme.brightText : NetworkStatus.primaryConnected ? Theme.accent : Theme.muted
+    glyph: NetworkStatus.icon
+    label: NetworkStatus.barLabel
+    // an SSID can be 32 characters of anything
+    labelLimit: 140
+    highlight: NetworkStatus.expanded
+    glyphColor: NetworkStatus.primaryConnected ? Theme.accent : Theme.muted
+    labelColor: NetworkStatus.primaryConnected ? Theme.text : Theme.muted
 
-    MouseArea {
-        anchors {
-            fill: parent
-            margins: -4
-        }
-        onClicked: Panels.toggle("network")
-    }
+    onClicked: Panels.toggle("network")
 }

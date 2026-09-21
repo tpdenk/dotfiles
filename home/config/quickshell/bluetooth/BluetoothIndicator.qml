@@ -1,20 +1,18 @@
-import QtQuick
 import qs
+import qs.widgets
 
-// Bar icon for the bluetooth controller; click toggles the details panel.
-Text {
+// Bar pill for the bluetooth controller: its icon and what it is connected to.
+// Click toggles the details panel.
+Pill {
     id: root
 
-    text: BluetoothStatus.icon
-    font.family: Theme.fontFamily
-    font.pointSize: Theme.h1Size
-    color: BluetoothStatus.expanded ? Theme.brightText : BluetoothStatus.connectedCount > 0 ? Theme.accent : Theme.muted
+    glyph: BluetoothStatus.icon
+    label: BluetoothStatus.barLabel
+    // a device names itself whatever it likes
+    labelLimit: 140
+    highlight: BluetoothStatus.expanded
+    glyphColor: BluetoothStatus.connectedCount > 0 ? Theme.accent : Theme.muted
+    labelColor: BluetoothStatus.connectedCount > 0 ? Theme.text : Theme.muted
 
-    MouseArea {
-        anchors {
-            fill: parent
-            margins: -4
-        }
-        onClicked: Panels.toggle("bluetooth")
-    }
+    onClicked: Panels.toggle("bluetooth")
 }

@@ -1,20 +1,16 @@
-import QtQuick
 import qs
+import qs.widgets
 
-// Bar icon for the default output; click toggles the details panel.
-Text {
+// Bar pill for the default output: its icon and volume. Click toggles the
+// details panel.
+Pill {
     id: root
 
-    text: AudioStatus.icon
-    font.family: Theme.fontFamily
-    font.pointSize: Theme.h1Size
-    color: AudioStatus.expanded ? Theme.brightText : AudioStatus.muted ? Theme.muted : Theme.accent
+    glyph: AudioStatus.icon
+    label: AudioStatus.volumeLabel
+    highlight: AudioStatus.expanded
+    glyphColor: AudioStatus.muted ? Theme.muted : Theme.accent
+    labelColor: AudioStatus.muted ? Theme.muted : Theme.text
 
-    MouseArea {
-        anchors {
-            fill: parent
-            margins: -4
-        }
-        onClicked: Panels.toggle("audio")
-    }
+    onClicked: Panels.toggle("audio")
 }

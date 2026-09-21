@@ -28,10 +28,3 @@ hl.window_rule({
 
     no_focus = true,
 })
-
-hl.layer_rule({
-    name = "blur-bar",
-    match = { namespace = "^bar$" },
-
-    blur = true,
-})

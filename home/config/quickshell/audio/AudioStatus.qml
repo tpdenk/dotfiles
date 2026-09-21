@@ -91,6 +91,9 @@ Singleton {
     // percent before silence: anything actually audible shows a wave.
     readonly property string icon: String.fromCodePoint(muted || volume <= 0 ? 0xf0581 : volume <= 0.05 ? 0xf057f : volume < 0.5 ? 0xf0580 : 0xf057e)
 
+    // the bar pill's text; muted still shows the level it would return to
+    readonly property string volumeLabel: `${Math.round(volume * 100)}%`
+
     // pipewire only streams a node's volume/mute while something binds it
     PwObjectTracker {
         objects: root.sinks.concat(root.sources)

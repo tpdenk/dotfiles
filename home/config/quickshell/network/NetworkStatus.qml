@@ -117,6 +117,18 @@ Singleton {
     readonly property string icon: iconOf(primary)
     readonly property bool primaryConnected: primary?.connected ?? false
 
+    // what the primary interface is attached to, in the width of a bar pill:
+    // the SSID says more than "Wi-Fi" does, and a wired link has no name
+    readonly property string barLabel: {
+        if (!primary)
+            return "No device";
+        if (primary.type !== DeviceType.Wifi)
+            return primary.connected ? "Wired" : primary.hasLink ? "Unused" : "Unplugged";
+        if (!Networking.wifiEnabled)
+            return "Off";
+        return networkOf(primary)?.name || (primary.connected ? "Connected" : "Offline");
+    }
+
     // --- the selected tab ---
 
     readonly property bool wifi: device?.type === DeviceType.Wifi

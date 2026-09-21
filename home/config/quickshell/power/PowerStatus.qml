@@ -153,26 +153,31 @@ Singleton {
 
     // --- power profile ---
 
+    // `label` names the profile in the panel's switch, `short` in the bar pill
     readonly property var profiles: [
         {
             label: "Eco",
+            short: "Eco",
             value: PowerProfile.PowerSaver,
             glyph: 0xf032a // leaf
         },
         {
             label: "Normal",
+            short: "Norm",
             value: PowerProfile.Balanced,
             glyph: 0xf05d1 // scale-balance
         },
         {
             label: "Performance",
+            short: "Perf",
             value: PowerProfile.Performance,
-            glyph: 0xf0241 // flash
+            // mdi's flash is 18px of ink where the other two are 13px: at one
+            // point size it still reads as the larger glyph
+            glyph: 0xf04c5 // speedometer
         }
     ]
 
     readonly property int profile: PowerProfiles.profile
-    readonly property bool profileIsDefault: profile === PowerProfile.Balanced
     readonly property int profileIndex: profilesAvailable ? profiles.findIndex(entry => entry.value === profile) : -1
 
     // quickshell reports Balanced whether the daemon answered or is not
@@ -229,8 +234,14 @@ Singleton {
         return String.fromCodePoint((charging ? chargeGlyphs : dischargeGlyphs)[step]);
     }
 
-    readonly property string profileIcon: profileIndex >= 0 ? String.fromCodePoint(profiles[profileIndex].glyph) : ""
+    // the bar pill's text: the charge when there is a battery, otherwise the
+    // profile, which is all a desk machine's power state has to say
+    readonly property string barLabel: hasBattery ? `${Math.round(charge)}%` : profileShort
 
-    // with neither glyph there would be nothing to click
+    readonly property string profileIcon: profileIndex >= 0 ? String.fromCodePoint(profiles[profileIndex].glyph) : ""
+    readonly property string profileShort: profileIndex >= 0 ? profiles[profileIndex].short : ""
+
+    // no battery and no profile daemon: without this there would be nothing
+    // to click
     readonly property string fallbackIcon: String.fromCodePoint(0xf06a5) // power-plug
 }

@@ -3,12 +3,13 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 import qs
+import qs.widgets
 
-// Workspaces living on `monitor`, ordered by id; the monitor's active one is highlighted.
-Row {
+// One pill holding every workspace living on `monitor`, ordered by id; the
+// monitor's active one is the highlighted number.
+Pill {
     id: root
     required property HyprlandMonitor monitor
-    spacing: 4
 
     Repeater {
         model: ScriptModel {
@@ -19,17 +20,18 @@ Row {
         Rectangle {
             required property HyprlandWorkspace modelData
 
-            width: Math.max(height, label.implicitWidth + 12)
-            height: 20
-            radius: Theme.roundingSmall
-            color: modelData.active ? Qt.alpha(Theme.accent, 0.25) : "transparent"
+            anchors.verticalCenter: parent.verticalCenter
+            implicitWidth: Math.max(height, label.implicitWidth + 6)
+            implicitHeight: 18
+            radius: height / 2
+            color: modelData.active ? Qt.alpha(Theme.accent, 0.3) : "transparent"
 
             Text {
                 id: label
                 anchors.centerIn: parent
                 text: parent.modelData.name
                 font.family: Theme.fontFamily
-                font.pointSize: Theme.fontSize
+                font.pointSize: Theme.smallSize
                 color: parent.modelData.active ? Theme.accent : Theme.muted
             }
 

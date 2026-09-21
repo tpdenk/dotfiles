@@ -1,47 +1,32 @@
 import QtQuick
 import qs
+import qs.widgets
 
-// Bar entry: the battery at its current level when this machine has one, then
-// the power profile. Click toggles the dropdown.
-Item {
+// Bar pill: on a machine with a battery, the battery at its current level with
+// its charge as a percentage, then the power profile; on one without, the
+// profile alone. Click toggles the dropdown.
+Pill {
     id: root
 
-    readonly property color tint: PowerStatus.expanded ? Theme.brightText : PowerStatus.low ? Theme.accentSecondary : PowerStatus.discharging ? Theme.accent : Theme.muted
+    readonly property color tint: PowerStatus.low ? Theme.accentSecondary : PowerStatus.discharging ? Theme.accent : Theme.muted
 
-    implicitWidth: row.implicitWidth
-    implicitHeight: row.implicitHeight
+    // the plug stands in when there is neither a battery nor a profile daemon,
+    // so the entry never collapses to nothing
+    glyph: PowerStatus.batteryIcon || PowerStatus.profileIcon || PowerStatus.fallbackIcon
+    label: PowerStatus.barLabel
+    glyphColor: PowerStatus.hasBattery ? root.tint : Theme.accent
+    labelColor: PowerStatus.hasBattery ? root.tint : Theme.text
+    highlight: PowerStatus.expanded
 
-    Row {
-        id: row
-        spacing: 4
+    onClicked: Panels.toggle("power")
 
-        Text {
-            anchors.verticalCenter: parent.verticalCenter
-            visible: text !== ""
-            // the plug stands in when there is nothing else to show, so the
-            // entry never collapses to an unclickable zero width
-            text: PowerStatus.batteryIcon || (PowerStatus.profileIcon ? "" : PowerStatus.fallbackIcon)
-            font.family: Theme.fontFamily
-            font.pointSize: Theme.h1Size
-            color: root.tint
-        }
-
-        Text {
-            anchors.verticalCenter: parent.verticalCenter
-            visible: text !== ""
-            text: PowerStatus.profileIcon
-            font.family: Theme.fontFamily
-            font.pointSize: Theme.h1Size
-            // balanced is the profile nobody chose
-            color: PowerStatus.expanded ? Theme.brightText : PowerStatus.profileIsDefault ? Theme.muted : Theme.accent
-        }
-    }
-
-    MouseArea {
-        anchors {
-            fill: parent
-            margins: -4
-        }
-        onClicked: Panels.toggle("power")
+    // the battery took the first slot, so the profile trails it
+    Text {
+        anchors.verticalCenter: parent.verticalCenter
+        visible: PowerStatus.hasBattery && text !== ""
+        text: PowerStatus.profileIcon
+        font.family: Theme.fontFamily
+        font.pointSize: Theme.h2Size
+        color: Theme.accent
     }
 }
