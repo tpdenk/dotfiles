@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#
+# lf previewer. Called as: preview <file> <width> <height> <x> <y>
+
+set -euf -o pipefail
+
+file="$1"
+width="$2"
+
+case "$(file -Lb --mime-type -- "$file")" in
+	text/* | application/json | application/javascript | application/x-shellscript | *+json | *+xml)
+		exec bat --color=always --style=numbers --paging=never \
+			--wrap=character --terminal-width="$width" -- "$file"
+		;;
+	application/zip | application/gzip | application/x-tar | application/x-xz | \
+		application/x-7z-compressed | application/vnd.rar)
+		exec bsdtar -tf "$file"
+		;;
+esac
+
+file -Lb -- "$file"

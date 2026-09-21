@@ -1,0 +1,12 @@
+export LANG=en_US.UTF-8
+export EDITOR=ed
+export VISUAL=ed
+
+typeset -U path
+path=("$HOME/.local/bin" $path)
+export PATH
+
+# Rust
+if [[ -r "$HOME/.cargo/env" ]]; then
+	. "$HOME/.cargo/env"
+fi

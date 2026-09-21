@@ -139,6 +139,18 @@ install_pkgs() {
 	fi
 }
 
+# Config dirs are symlinked wholesale, so anything executable (lf previewers,
+# hypr exec scripts, ~/.local/bin entries) has to carry the bit in the repo.
+mark_scripts_executable() {
+	local src
+	while IFS= read -r -d '' src; do
+		[[ "$(head -c 2 -- "$src")" == '#!' ]] || continue
+		[[ -x "$src" ]] && continue
+		chmod +x -- "$src"
+		echo "  +x ${src#"$DOTFILES"/}"
+	done < <(find "$DOTFILES/home" -type f -print0)
+}
+
 link_one() {
 	local src="$1" dest="$2"
 	if [[ -L "$dest" ]]; then
@@ -155,10 +167,12 @@ link_one() {
 }
 
 link_dotfiles() {
-	local src name backup
+	local src name dest_name backup
 	backup="$HOME/.config-backup-$(date +%Y%m%d%H%M%S)"
 
 	mkdir -p "$HOME/.config" "$HOME/.local/bin"
+
+	mark_scripts_executable
 
 	for src in "$DOTFILES"/home/config/*/; do
 		[[ -d "$src" ]] || continue
@@ -180,7 +194,6 @@ link_dotfiles() {
 		name="$(basename "$src")"
 		dest_name="$HOME/.local/bin/${name%.*}"
 		link_one "$src" "${dest_name}"
-		chmod +x "${dest_name}"
 	done
 }
 
