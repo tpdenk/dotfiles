@@ -46,6 +46,7 @@ slurp
 sudo
 terminus-font
 tree
+unarchiver
 uwsm
 vim
 vulkan-swrast

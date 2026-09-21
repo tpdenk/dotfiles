@@ -1,0 +1,49 @@
+set shell zsh
+
+set shellopts '-eu'
+
+set ifs "\n"
+
+set cursorparentfmt "\033[7;2m"
+set cursorpreviewfmt "\033[7;2m"
+
+map <enter> shell
+map ` !true
+
+cmd rm delete
+
+cmd add %{{
+    target="$*"
+    [ -n "$target" ] || exit 0
+    case "$target" in
+        */) mkdir -p -- "$target" ;;
+        *)
+            mkdir -p -- "$(dirname -- "$target")"
+            [ -e "$target" ] || touch -- "$target"
+            ;;
+    esac
+}}
+map a push :add<space>
+
+cmd tar ${{
+    set -f
+    local NAME="${1:-archive}"
+    mkdir "$NAME"
+    cp -r $fx "$NAME"
+    tar czf "$NAME.tar.gz" "$NAME"
+    rm -rf "$NAME"
+}}
+
+cmd zip ${{
+    set -f
+    local NAME="${1:-archive}"
+    mkdir "$NAME"
+    cp -r $fx "$NAME"
+    zip -r "$NAME.zip" "$NAME"
+    rm -rf "$NAME"
+}}
+
+cmd unar ${{
+	set -f
+	unar "$f"
+}}
