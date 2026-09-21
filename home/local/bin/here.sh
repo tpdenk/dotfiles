@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 #
-# term-here: open a terminal in the working directory of the focused window.
+# here: run a command (or print the path) in the working directory of the
+# focused window.
 
 set -uo pipefail
-
-term=${TERMINAL:-alacritty}
 
 # /proc/<pid>/stat fields, numbered after the ") " that terminates comm:
 #   1 state  2 ppid  3 pgrp  4 session  5 tty_nr  6 tpgid
@@ -45,4 +44,6 @@ done
 [[ -n $dir ]] || dir=$(cwd_of "${win_pid:-0}") || dir=$HOME
 
 cd -- "$dir" || cd -- "$HOME" || exit 1
-exec "$term"
+
+(($# > 0)) || { printf '%s\n' "$PWD"; exit 0; }
+exec "$@"
