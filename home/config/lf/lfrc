@@ -1,14 +1,34 @@
+# set shell opts
 set shell zsh
-
 set shellopts '-eu'
 
-set ifs "\n"
+set icons true
+
+set promptfmt "\033[38;2;86;95;137m%u@%h\033[0m:\033[1;38;2;122;162;247m%d\033[0m\033[38;2;192;202;245m%f\033[0m"
+set rulerfile "~/.config/lf/ruler"
+set timefmt "2006-01-02 15:04"
+set numberfmt "\033[38;2;86;95;137m"
+set errorfmt "\033[1;7;38;2;247;118;142m"
 
 set cursorparentfmt "\033[7;2m"
 set cursorpreviewfmt "\033[7;2m"
+set selectfmt "\033[7;38;2;187;154;247m"
+set copyfmt "\033[7;38;2;255;158;100m"
+set cutfmt "\033[7;38;2;247;118;142m"
+set visualfmt "\033[7;38;2;125;207;255m"
+set tagfmt "\033[1;38;2;255;158;100m"
 
-map <enter> shell
-map ` !true
+# draw vertical separators between panes
+set drawbox
+set borderstyle separators
+set borderfmt "\033[38;2;86;95;137m"
+
+set dirfirst
+set nodirpreviews
+
+##############
+## commands ##
+##############
 
 cmd rm delete
 
@@ -23,7 +43,6 @@ cmd add %{{
             ;;
     esac
 }}
-map a push :add<space>
 
 cmd tar ${{
     set -f
@@ -47,3 +66,17 @@ cmd unar ${{
 	set -f
 	unar "$f"
 }}
+
+cmd copypath ${{
+	wl-copy "$f"
+	notify-send "$f" "copied to clipboard"
+}}
+
+##############
+## bindings ##
+##############
+
+map <enter> shell
+map ` !true
+map a push :add<space>
+map H hidden!
