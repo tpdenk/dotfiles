@@ -165,6 +165,11 @@ link_dotfiles() {
 		link_one "${src%/}" "$HOME/.config/$(basename "$src")"
 	done
 
+	for src in "$DOTFILES"/home/config/*; do
+		[[ -f "$src" ]] || continue
+		link_one "$src" "$HOME/.config/$(basename "$src")"
+	done
+
 	for src in "$DOTFILES"/home/*; do
 		[[ -f "$src" ]] || continue
 		link_one "$src" "$HOME/.$(basename "$src")"

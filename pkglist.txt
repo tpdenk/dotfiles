@@ -14,6 +14,7 @@ fd
 fzf
 gcc
 git
+gpu-screen-recorder
 gst-plugin-pipewire
 hexyl
 hypridle
@@ -40,6 +41,7 @@ polkit-kde-agent
 quickshell
 ripgrep
 sd
+slurp
 sudo
 terminus-font
 tree

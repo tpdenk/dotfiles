@@ -19,6 +19,8 @@ Singleton {
     readonly property color muted: color("muted")
     readonly property color accent: color("accent")
     readonly property color accentSecondary: color("accent_secondary")
+    readonly property color warning: color("warning")
+    readonly property color alert: color("alert")
 
     readonly property int roundingLarge: int("rounding_large")
     readonly property int roundingSmall: int("rounding_small")

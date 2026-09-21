@@ -9,6 +9,7 @@ import qs.audio
 import qs.bluetooth
 import qs.network
 import qs.power
+import qs.screenrecord
 import qs.widgets
 
 // The top strip: no surface of its own, only the pills floating on it.
@@ -45,9 +46,20 @@ Scope {
             }
 
             Pill {
+                id: clock
                 anchors.centerIn: parent
                 label: root.time
                 labelColor: Theme.brightText
+            }
+
+            // trails the clock instead of joining the row of dropdowns: it
+            // comes and goes, and must not shuffle the indicators around
+            ScreenRecordIndicator {
+                anchors {
+                    left: clock.right
+                    leftMargin: 6
+                    verticalCenter: parent.verticalCenter
+                }
             }
 
             // the dropdown indicators share the top-right corner

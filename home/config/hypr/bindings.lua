@@ -17,7 +17,7 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("qs ipc call audio toggleMute"), { lock
 
 local screenshot = "hyprshot -z -o $HOME/Pictures/Screenshots"
 hl.bind("PRINT", hl.dsp.exec_cmd(screenshot .. " -m region"))
-hl.bind("SUPER + PRINT", hl.dsp.exec_cmd(screenshot .. " -m window"))
+hl.bind("SUPER + PRINT", hl.dsp.exec_cmd("qs ipc call screenrecord start"))
 
 hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind("SUPER + N", hl.dsp.focus({ workspace = "empty" }))
