@@ -11,12 +11,13 @@ hl.bind("SUPER + CTRL + T", hl.dsp.exec_cmd("alacritty -e btop"))
 hl.bind("SUPER + CTRL + P", hl.dsp.exec_cmd("qs ipc call power toggle"))
 hl.bind("SUPER + CTRL + L", hl.dsp.exec_cmd("loginctl lock-session"))
 
--- media keys, including the rotary encoder's volume detents; locked so they
--- keep working on the lock screen, repeating so holding a key keeps stepping
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("qs ipc call audio volumeUp"), { locked = true, repeating = true })
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("qs ipc call audio volumeDown"), { locked = true, repeating = true })
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("qs ipc call audio toggleMute"), { locked = true })
 
+local screenshot = "hyprshot -z -o $HOME/Pictures/Screenshots"
+hl.bind("PRINT", hl.dsp.exec_cmd(screenshot .. " -m region"))
+hl.bind("SUPER + PRINT", hl.dsp.exec_cmd(screenshot .. " -m window"))
 
 hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind("SUPER + N", hl.dsp.focus({ workspace = "empty" }))

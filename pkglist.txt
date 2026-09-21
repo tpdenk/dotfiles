@@ -20,6 +20,8 @@ hypridle
 hyprland
 hyprlock
 hyprpaper
+hyprpicker
+hyprshot
 kitty
 libnotify
 libpulse
