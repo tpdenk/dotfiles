@@ -461,7 +461,6 @@ set_dark_mode() {
 		gtk-theme Adwaita-dark
 		icon-theme Adwaita
 		cursor-theme Adwaita
-		font-name BerkeleyMono Nerd Font Mono 11
 	KEYS
 }
 
