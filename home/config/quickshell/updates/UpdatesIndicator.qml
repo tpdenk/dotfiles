@@ -21,4 +21,26 @@ Pill {
         font.pointSize: Theme.h2Size
         color: Theme.warning
     }
+
+    Row {
+        anchors.verticalCenter: parent.verticalCenter
+        visible: FirmwareStatus.count > 0 || FirmwareStatus.failed
+        spacing: 6
+
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            text: FirmwareStatus.icon
+            font.family: Theme.fontFamily
+            font.pointSize: Theme.h2Size
+            color: FirmwareStatus.failed ? Theme.alert : Theme.accentSecondary
+        }
+
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            text: FirmwareStatus.label
+            font.family: Theme.fontFamily
+            font.pointSize: Theme.smallSize
+            color: Theme.brightText
+        }
+    }
 }

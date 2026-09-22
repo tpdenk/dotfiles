@@ -31,6 +31,7 @@ Scope {
         }
         function refresh(): void {
             UpdatesStatus.refresh();
+            FirmwareStatus.refresh();
         }
     }
 }

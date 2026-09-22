@@ -28,6 +28,7 @@ hyprlock
 hyprpaper
 hyprpicker
 hyprshot
+jq
 lf
 libnotify
 libpulse

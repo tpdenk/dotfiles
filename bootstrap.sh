@@ -203,6 +203,7 @@ link_dotfiles() {
 
 enable_services() {
 	local sys=( NetworkManager sshd docker power-profiles-daemon bluetooth )
+	local timers=( fwupd-refresh )
 	local user=( pipewire pipewire-pulse wireplumber hypridle )
 	local s
 
@@ -210,6 +211,12 @@ enable_services() {
 	for s in "${sys[@]}"; do
 		systemctl list-unit-files "$s.service" >/dev/null 2>&1 || { warn "no $s.service"; continue; }
 		sudo systemctl enable --now "$s.service"
+	done
+
+	log "system timers"
+	for s in "${timers[@]}"; do
+		systemctl list-unit-files "$s.timer" >/dev/null 2>&1 || { warn "no $s.timer"; continue; }
+		sudo systemctl enable --now "$s.timer"
 	done
 
 	# docker group is root-equivalent, takes effect after re-login

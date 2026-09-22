@@ -59,10 +59,10 @@ Singleton {
         return rebuild ? `${from} → -${to.split("-").pop()}` : `${from.replace(/-[^-]*$/, "")} → ${to.replace(/-[^-]*$/, "")}`;
     }
 
-    // pacman wants root and asks questions, so it runs in a terminal the
-    // answers can be typed into
+    // pacman and fwupdmgr want root and ask questions, so they run in a
+    // terminal the answers can be typed into
     function run(args: var): void {
-        Quickshell.execDetached(["xdg-terminal-exec", "sh", "-c", 'sudo "$@"; printf "\n[enter] to close"; read _', "pkg-updates", ...args]);
+        Quickshell.execDetached(["xdg-terminal-exec", "sh", "-c", 'sudo "$@"; printf "\n[enter] to close"; read _', "updates", ...args]);
     }
 
     function updateAll(): void {

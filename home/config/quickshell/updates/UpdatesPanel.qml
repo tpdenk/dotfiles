@@ -24,6 +24,12 @@ PanelCard {
         value: UpdatesStatus.kernelUpdate ? UpdatesStatus.versionLabel(UpdatesStatus.kernel) : "current"
     }
 
+    Stat {
+        width: parent.width
+        label: "Firmware"
+        value: FirmwareStatus.failed ? "unknown" : FirmwareStatus.count > 0 ? `${FirmwareStatus.count}` : "current"
+    }
+
     Text {
         width: parent.width
         visible: UpdatesStatus.kernelUpdate
@@ -58,6 +64,14 @@ PanelCard {
     }
 
     UpdatesPackages {
+        width: parent.width
+    }
+
+    Divider {
+        width: parent.width
+    }
+
+    UpdatesFirmware {
         width: parent.width
     }
 }
