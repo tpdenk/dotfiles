@@ -3,6 +3,7 @@ import Quickshell.Io
 import qs.audio
 import qs.bar
 import qs.bluetooth
+import qs.docker
 import qs.launcher
 import qs.network
 import qs.notifications
@@ -14,6 +15,7 @@ ShellRoot {
     Bar {}
     Audio {}
     Bluetooth {}
+    Docker {}
     Launcher {}
     Network {}
     Notifications {}

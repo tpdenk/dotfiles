@@ -7,6 +7,8 @@ Rectangle {
 
     property string label
     property color labelColor: Theme.text
+    // indent for a row nested under another
+    property real indent: 0
     default property alias meta: metaRow.data
 
     signal clicked
@@ -18,7 +20,7 @@ Rectangle {
     Text {
         anchors {
             left: parent.left
-            leftMargin: 6
+            leftMargin: 6 + root.indent
             right: metaRow.left
             rightMargin: 8
             verticalCenter: parent.verticalCenter
