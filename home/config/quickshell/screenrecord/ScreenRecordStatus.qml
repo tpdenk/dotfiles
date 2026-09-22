@@ -100,7 +100,7 @@ Singleton {
         }).join("\n");
 
         const rgba = (color, alpha) => color.toString().slice(1) + alpha;
-        return ["sh", "-c", 'printf %s "$1" | slurp -r -o -f "%wx%h+%x+%y %l" -b "$2" -c "$3" -s "$4"', "screenrecord", boxes, rgba(Theme.background, "99"), rgba(Theme.accent, "ff"), rgba(Theme.accent, "26")];
+        return ["sh", "-c", 'printf %s "$1" | slurp -o -f "%wx%h+%x+%y %o %l" -b "$2" -c "$3" -s "$4" -B "$5"', "screenrecord", boxes, rgba(Theme.background, "99"), rgba(Theme.accent, "ff"), rgba(Theme.accent, "26"), rgba(Theme.muted, "40")];
     }
 
     function notify(summary: string, body: string): void {
@@ -121,16 +121,33 @@ Singleton {
                 return;
 
             const parts = pick.text.trim().split(" ");
-            const label = parts.slice(1).join(" ");
-            const monitor = Hyprland.monitors.values.find(candidate => candidate.name === label);
-            const toplevel = monitor ? null : Hyprland.toplevels.values.find(candidate => candidate.address === label);
+            const geometry = parts[0];
+            const output = parts[1];
+            const label = parts.slice(2).join(" ");
+
+            const picked = geometry.match(/^(\d+)x(\d+)\+(-?\d+)\+(-?\d+)$/);
+            if (!picked)
+                return;
+            const [w, h, x, y] = picked.slice(1).map(Number);
+
+            const isBox = (bx, by, bw, bh) => Math.abs(x - bx) <= 2 && Math.abs(y - by) <= 2 && Math.abs(w - bw) <= 2 && Math.abs(h - bh) <= 2;
+
+            const monitor = Hyprland.monitors.values.find(candidate => {
+                const ipc = candidate.lastIpcObject;
+                return candidate.name === label && ipc && isBox(ipc.x, ipc.y, Math.round(ipc.width / ipc.scale), Math.round(ipc.height / ipc.scale));
+            });
+            const toplevel = monitor ? null : Hyprland.toplevels.values.find(candidate => {
+                const ipc = candidate.lastIpcObject;
+                return candidate.address === label && ipc && isBox(ipc.at[0], ipc.at[1], ipc.size[0], ipc.size[1]);
+            });
 
             // a window records as the region it occupies: gpu-screen-recorder
             // works out which monitor that lands on
-            root.source = monitor ? monitor.name : parts[0];
+            root.source = monitor ? monitor.name : geometry;
             // capping at 60 keeps a 120 Hz panel from doubling the file size
             // for frames nothing will play back
-            root.fps = Math.min(60, Math.round((monitor ?? toplevel?.monitor)?.lastIpcObject?.refreshRate ?? 60));
+            const host = monitor ?? toplevel?.monitor ?? Hyprland.monitors.values.find(candidate => candidate.name === output);
+            root.fps = Math.min(60, Math.round(host?.lastIpcObject?.refreshRate ?? 60));
 
             root.countdown = root.countdownFrom;
         }

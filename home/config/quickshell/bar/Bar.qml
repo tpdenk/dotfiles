@@ -11,6 +11,7 @@ import qs.docker
 import qs.network
 import qs.power
 import qs.screenrecord
+import qs.screenshare
 import qs.updates
 import qs.widgets
 
@@ -62,14 +63,19 @@ Scope {
                 }
             }
 
-            // trails the clock instead of joining the row of dropdowns: it
-            // comes and goes, and must not shuffle the indicators around
-            ScreenRecordIndicator {
+            // trail the clock instead of joining the row of dropdowns: they
+            // come and go, and must not shuffle the indicators around
+            Row {
                 anchors {
                     left: clock.right
                     leftMargin: 6
                     verticalCenter: parent.verticalCenter
                 }
+                spacing: 6
+
+                ScreenShareIndicator {}
+
+                ScreenRecordIndicator {}
             }
 
             // the dropdown indicators share the top-right corner

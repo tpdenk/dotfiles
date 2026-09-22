@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "One picker screen share",
+  "version": "1.0",
+  "description": "Routes every getDisplayMedia call through the screen surface, so Brave's own source dialog auto-accepts and the portal picker is the only thing that asks.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "world": "MAIN",
+      "js": ["force-monitor.js"]
+    }
+  ]
+}
