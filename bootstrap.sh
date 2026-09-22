@@ -8,6 +8,7 @@
 #   ./bootstrap.sh links      just dotfile symlinks
 #                  -f/--force recreate and overwrite existing symlinks
 #   ./bootstrap.sh services   just systemctl enables
+#   ./bootstrap.sh theme      just the dark-mode gsettings keys
 #   ./bootstrap.sh firewall   just the ufw rules
 #   ./bootstrap.sh shell      just set zsh as the login shell
 #   ./bootstrap.sh rustup     just the rust toolchain
@@ -442,6 +443,28 @@ enable_services() {
 	fi
 }
 
+set_dark_mode() {
+	log "dark mode"
+	have gsettings || { warn "no gsettings, skipping"; return; }
+	local schema=org.gnome.desktop.interface
+	gsettings list-schemas | grep -qxF "$schema" || {
+		warn "no $schema schema (install gsettings-desktop-schemas), skipping"
+		return
+	}
+
+	local key value
+	while read -r key value; do
+		gsettings set "$schema" "$key" "$value"
+		echo "  $key = $value"
+	done <<-'KEYS'
+		color-scheme prefer-dark
+		gtk-theme Adwaita-dark
+		icon-theme Adwaita
+		cursor-theme Adwaita
+		font-name BerkeleyMono Nerd Font Mono 11
+	KEYS
+}
+
 args=()
 for arg in "$@"; do
 	case "$arg" in
@@ -455,6 +478,7 @@ case "${1:-all}" in
 	pkgs)     install_pkgs ;;
 	links)    link_dotfiles ;;
 	services) enable_services ;;
+	theme)    set_dark_mode ;;
 	firewall) install_firewall ;;
 	rustup)   install_rustup ;;
 	omz)      install_omz ;;
@@ -468,6 +492,7 @@ case "${1:-all}" in
 		install_pkgs
 		link_dotfiles
 		enable_services
+		set_dark_mode
 		install_firewall
 		install_rustup
 		install_omz
