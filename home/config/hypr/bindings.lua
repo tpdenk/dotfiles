@@ -3,7 +3,7 @@ local hl = hl or error("no hl")
 local here = "$HOME/.local/bin/here"
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(here .. " xdg-terminal-exec"))
 hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("brave"))
-hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(here .. " xdg-terminal-exec lf"))
+hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(here .. " xdg-terminal-exec -- lf"))
 
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 hl.bind("SUPER + CTRL + W", hl.dsp.exec_cmd("qs ipc call network toggle"))
