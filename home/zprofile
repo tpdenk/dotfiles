@@ -1,3 +1,9 @@
+# uwsm inherits this process's environment, so pin SHELL here: the systemd
+# --user manager caches whatever SHELL it first saw (often bash from an
+# earlier login), and every terminal Hyprland spawns would otherwise open
+# that stale shell instead of the login shell.
+export SHELL="${commands[zsh]:-/usr/bin/zsh}"
+
 # Start the Wayland session on tty1 login. uwsm replaces the login shell,
 # so logging out of Hyprland returns to the getty prompt.
 if uwsm check may-start; then

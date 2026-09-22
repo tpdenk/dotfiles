@@ -8,6 +8,7 @@
 #   ./bootstrap.sh links      just dotfile symlinks
 #   ./bootstrap.sh services   just systemctl enables
 #   ./bootstrap.sh firewall   just the ufw rules
+#   ./bootstrap.sh shell      just set zsh as the login shell
 #   ./bootstrap.sh rustup     just the rust toolchain
 #   ./bootstrap.sh omz        just oh-my-zsh
 #   ./bootstrap.sh ssh        just the ssh key setup
@@ -82,6 +83,19 @@ install_omz() {
 		KEEP_ZSHRC=yes RUNZSH=no sh -c "$installer"
 	else
 		"$HOME/.oh-my-zsh/tools/upgrade.sh"
+	fi
+}
+
+set_login_shell() {
+	log "login shell"
+	local zsh_path
+	zsh_path="$(command -v zsh)" || die "zsh not installed, run ./bootstrap.sh pkgs first"
+	grep -qxF "$zsh_path" /etc/shells || echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+	if [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$zsh_path" ]]; then
+		sudo chsh -s "$zsh_path" "$USER"
+		echo "  set to $zsh_path (re-login to apply)"
+	else
+		echo "  already $zsh_path"
 	fi
 }
 
@@ -331,6 +345,7 @@ case "${1:-all}" in
 	firewall) install_firewall ;;
 	rustup)   install_rustup ;;
 	omz)      install_omz ;;
+	shell)    set_login_shell ;;
 	ssh)      setup_ssh ;;
 	editor)   install_editor ;;
 	omp)      install_omp ;;
@@ -341,6 +356,7 @@ case "${1:-all}" in
 		install_firewall
 		install_rustup
 		install_omz
+		set_login_shell
 		setup_ssh
 		use_ssh_remote
 		install_editor
