@@ -4,11 +4,12 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import QtQuick
 import qs
+import qs.screenrecord
 
-// An outline around whatever is being shared, on the output carrying it. It is
-// drawn just outside the area, so a shared region or window does not contain
-// it and the people watching see nothing; only a whole-output share, which has
-// no outside, shows it at the screen edge.
+// An outline around whatever is being captured, on the output carrying it. It
+// is drawn just outside the area, so a captured region or window does not
+// contain it and the people watching see nothing; only a whole-output capture,
+// which has no outside, shows it at the screen edge.
 Scope {
     Variants {
         model: Quickshell.screens
@@ -18,14 +19,16 @@ Scope {
             required property var modelData
             screen: modelData
 
-            readonly property var area: ScreenShareStatus.area
+            // a recording is the shell's own capture and knows its box; a
+            // share only has what the picker last told the portal
+            readonly property var area: ScreenRecordStatus.recording ? ScreenRecordStatus.area : ScreenShareStatus.area
             readonly property var monitor: Hyprland.monitorFor(panel.screen)
             // a shared window is followed rather than framed once: it moves,
             // resizes and changes monitor while the share runs
             readonly property var toplevel: panel.area?.address ? Hyprland.toplevels.values.find(candidate => candidate.address === panel.area.address) : null
             readonly property string output: panel.toplevel ? (panel.toplevel.monitor?.name ?? "") : (panel.area?.output ?? "")
 
-            visible: ScreenShareStatus.active && panel.area !== null && panel.output === (panel.monitor?.name ?? "")
+            visible: (ScreenShareStatus.active || ScreenRecordStatus.recording) && panel.area !== null && panel.output === (panel.monitor?.name ?? "")
 
             WlrLayershell.namespace: "share-outline"
             WlrLayershell.layer: WlrLayer.Overlay

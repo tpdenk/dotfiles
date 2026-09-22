@@ -22,6 +22,7 @@ git-lfs
 github-cli
 gnome-themes-extra
 gpu-screen-recorder
+grim
 gst-plugin-pipewire
 hexyl
 hypridle
@@ -29,7 +30,6 @@ hyprland
 hyprlock
 hyprpaper
 hyprpicker
-hyprshot
 jq
 lf
 libnotify
