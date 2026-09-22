@@ -209,6 +209,7 @@ make_user_dirs() {
 			/*) ;;
 			*) continue ;;
 		esac
+		[[ -d "$dir" ]] && continue
 		mkdir -p "$dir"
 		echo "  dir ${dir#"$HOME"/}"
 	done < "$dirs"
