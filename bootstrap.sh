@@ -126,6 +126,35 @@ setup_ssh() {
 	fi
 }
 
+use_ssh_remote() {
+	have git || { warn "git not installed, skipping remote rewrite"; return; }
+	git -C "$DOTFILES" rev-parse --git-dir >/dev/null 2>&1 \
+		|| { warn "$DOTFILES is not a git repo, skipping remote rewrite"; return; }
+
+	local remote url host path
+	for remote in $(git -C "$DOTFILES" remote); do
+		log "switch dotfiles repo to ssh remote"
+		url="$(git -C "$DOTFILES" remote get-url "$remote")"
+		[[ "$url" == https://* || "$url" == http://* ]] || continue
+
+		# https://[user@]host[:port]/owner/repo(.git) -> git@host:owner/repo.git
+		path="${url#*://}"
+		path="${path#*@}"
+		host="${path%%/*}"
+		host="${host%%:*}"
+		path="${path#*/}"
+		[[ -n "$host" && "$path" != "$url" && -n "$path" ]] || {
+			warn "cannot parse $remote url, leaving it alone: $url"
+			continue
+		}
+		path="${path%/}"
+		path="${path%.git}"
+
+		log "switching $remote to ssh: $url -> git@$host:$path.git"
+		git -C "$DOTFILES" remote set-url "$remote" "git@$host:$path.git"
+	done
+}
+
 install_firewall() {
 	have ufw || { warn "ufw not installed, skipping firewall"; return; }
 
@@ -313,6 +342,7 @@ case "${1:-all}" in
 		install_rustup
 		install_omz
 		setup_ssh
+		use_ssh_remote
 		install_editor
 		install_omp
 		log "done. log out and back in on tty1, uwsm starts Hyprland" ;;
