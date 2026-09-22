@@ -13,7 +13,7 @@ Rectangle {
     // wide enough for a full IPv6 address with prefix on one line
     implicitWidth: 400
     implicitHeight: column.implicitHeight + 24
-    radius: Theme.roundingLarge
+    radius: Theme.windowRounding
     color: Theme.background
     border.width: Theme.borderSize
     border.color: Theme.accent

@@ -20,7 +20,7 @@ hl.config({
     },
 
     decoration = {
-        rounding = 2,
+        rounding = theme.int("window_rounding"),
         rounding_power = 2,
 
         active_opacity = 0.9,

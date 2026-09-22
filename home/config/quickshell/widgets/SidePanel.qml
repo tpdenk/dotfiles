@@ -10,6 +10,7 @@ PanelWindow { // qmllint disable uncreatable-type
     // only a dialog with a text field needs the keyboard; otherwise the panel
     // may sit open while you type in another window
     property bool grabKeyboard: false
+    property bool centered: false
     property Component card
 
     WlrLayershell.layer: WlrLayer.Overlay
@@ -17,10 +18,11 @@ PanelWindow { // qmllint disable uncreatable-type
     WlrLayershell.keyboardFocus: root.grabKeyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
 
-    // below the bar, aligned with the indicators that open these panels
+    // below the bar, aligned with the indicators that open these panels; a
+    // layer surface left unanchored on an axis is centred on it
     anchors {
         top: true
-        right: true
+        right: !root.centered
     }
     margins {
         top: 38

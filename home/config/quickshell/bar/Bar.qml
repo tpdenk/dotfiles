@@ -10,6 +10,7 @@ import qs.bluetooth
 import qs.network
 import qs.power
 import qs.screenrecord
+import qs.updates
 import qs.widgets
 
 // The top strip: no surface of its own, only the pills floating on it.
@@ -50,6 +51,14 @@ Scope {
                 anchors.centerIn: parent
                 label: root.time
                 labelColor: Theme.brightText
+            }
+
+            UpdatesIndicator {
+                anchors {
+                    right: clock.left
+                    rightMargin: 6
+                    verticalCenter: parent.verticalCenter
+                }
             }
 
             // trails the clock instead of joining the row of dropdowns: it

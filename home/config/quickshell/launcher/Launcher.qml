@@ -47,7 +47,7 @@ Scope {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.roundingLarge
+            radius: Theme.windowRounding
             color: Theme.background
             border.width: Theme.borderSize
             border.color: Theme.accent

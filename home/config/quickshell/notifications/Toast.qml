@@ -7,7 +7,7 @@ Rectangle {
     required property Notification notification
 
     implicitHeight: content.implicitHeight + 20
-    radius: Theme.roundingLarge
+    radius: Theme.windowRounding
     color: Theme.background
     border.width: Theme.borderSize
     border.color: Theme.accent

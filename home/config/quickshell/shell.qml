@@ -8,6 +8,7 @@ import qs.network
 import qs.notifications
 import qs.power
 import qs.screenrecord
+import qs.updates
 
 ShellRoot {
     Bar {}
@@ -18,6 +19,7 @@ ShellRoot {
     Notifications {}
     Power {}
     ScreenRecord {}
+    Updates {}
 
     IpcHandler {
         target: "shell"

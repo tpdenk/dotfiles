@@ -11,6 +11,7 @@ hl.bind("SUPER + CTRL + B", hl.dsp.exec_cmd("qs ipc call bluetooth toggle"))
 hl.bind("SUPER + CTRL + A", hl.dsp.exec_cmd("qs ipc call audio toggle"))
 hl.bind("SUPER + CTRL + T", hl.dsp.exec_cmd("alacritty -e btop"))
 hl.bind("SUPER + CTRL + P", hl.dsp.exec_cmd("qs ipc call power toggle"))
+hl.bind("SUPER + CTRL + U", hl.dsp.exec_cmd("qs ipc call updates toggle"))
 hl.bind("SUPER + CTRL + L", hl.dsp.exec_cmd("loginctl lock-session"))
 
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("qs ipc call audio volumeUp"), { locked = true, repeating = true })

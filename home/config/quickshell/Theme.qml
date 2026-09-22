@@ -24,6 +24,7 @@ Singleton {
 
     readonly property int roundingLarge: int("rounding_large")
     readonly property int roundingSmall: int("rounding_small")
+    readonly property int windowRounding: int("window_rounding")
     readonly property int borderSize: int("border_size")
 
     readonly property string fontFamily: vars.font_family ?? ""
