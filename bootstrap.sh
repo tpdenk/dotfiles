@@ -7,6 +7,7 @@
 #   ./bootstrap.sh pkgs       just package installs
 #   ./bootstrap.sh links      just dotfile symlinks
 #   ./bootstrap.sh services   just systemctl enables
+#   ./bootstrap.sh firewall   just the ufw rules
 #   ./bootstrap.sh rustup     just the rust toolchain
 #   ./bootstrap.sh omz        just oh-my-zsh
 #   ./bootstrap.sh ssh        just the ssh key setup
@@ -96,11 +97,14 @@ setup_ssh() {
 		read -rp "press enter once GitHub has the key... " _
 		github_ssh_ok || die "github still refuses the key, check https://github.com/settings/keys"
 	fi
+}
 
-	if have ufw; then
-		log "configure firewall for ssh"
-		sudo ufw allow ssh
-	fi
+install_firewall() {
+	have ufw || { warn "ufw not installed, skipping firewall"; return; }
+
+	log "firewall"
+	sudo ufw allow ssh
+	sudo ufw --force enable
 }
 
 install_rustup() {
@@ -198,7 +202,7 @@ link_dotfiles() {
 }
 
 enable_services() {
-	local sys=( NetworkManager sshd docker power-profiles-daemon )
+	local sys=( NetworkManager sshd docker power-profiles-daemon bluetooth )
 	local user=( pipewire pipewire-pulse wireplumber hypridle )
 	local s
 
@@ -241,6 +245,7 @@ case "${1:-all}" in
 	pkgs)     install_pkgs ;;
 	links)    link_dotfiles ;;
 	services) enable_services ;;
+	firewall) install_firewall ;;
 	rustup)   install_rustup ;;
 	omz)      install_omz ;;
 	ssh)      setup_ssh ;;
@@ -250,11 +255,12 @@ case "${1:-all}" in
 		install_pkgs
 		link_dotfiles
 		enable_services
+		install_firewall
 		install_rustup
 		install_omz
 		setup_ssh
 		install_editor
 		install_omp
 		log "done. log out and back in on tty1, uwsm starts Hyprland" ;;
-	*)        sed -n '3,12p' "$0"; exit 1 ;;
+	*)        sed -n '/^# bootstrap.sh:/,/^$/p' "$0"; exit 1 ;;
 esac
