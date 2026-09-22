@@ -11,6 +11,7 @@
 #   ./bootstrap.sh shell      just set zsh as the login shell
 #   ./bootstrap.sh rustup     just the rust toolchain
 #   ./bootstrap.sh omz        just oh-my-zsh
+#   ./bootstrap.sh p10k       just the powerlevel10k prompt
 #   ./bootstrap.sh ssh        just the ssh key setup
 #   ./bootstrap.sh editor     just the editor installation
 #   ./bootstrap.sh omp        just install omp (oh-my-pi)
@@ -84,6 +85,20 @@ install_omz() {
 	else
 		"$HOME/.oh-my-zsh/tools/upgrade.sh"
 	fi
+}
+
+install_p10k() {
+	local dir="$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
+	log "powerlevel10k"
+	[[ -d "$HOME/.oh-my-zsh" ]] || die "oh-my-zsh missing, run ./bootstrap.sh omz first"
+	if [[ -d "$dir/.git" ]]; then
+		git -C "$dir" pull --ff-only || warn "powerlevel10k update failed, keeping the current checkout"
+	else
+		[[ -e "$dir" ]] && die "$dir exists but is not a git checkout, remove it and rerun"
+		git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$dir"
+	fi
+	zsh -f "$dir/gitstatus/install" -f \
+		|| warn "gitstatusd install failed, the prompt will fall back to vcs_info"
 }
 
 set_login_shell() {
@@ -324,10 +339,13 @@ enable_services() {
 	done
 
 	log "dotfiles user units"
+	local unit
 	for s in "$DOTFILES"/home/systemd/user/*.service; do
 		[[ -f "$s" ]] || continue
-		systemctl --user enable "$s"
-		echo "  enabled $(basename "$s")"
+		unit="$(basename "$s")"
+		systemctl --user link --force "$s" >/dev/null
+		systemctl --user enable "$unit" >/dev/null
+		echo "  enabled $unit"
 	done
 	systemctl --user daemon-reload
 	if systemctl --user is-active -q graphical-session.target; then
@@ -345,6 +363,7 @@ case "${1:-all}" in
 	firewall) install_firewall ;;
 	rustup)   install_rustup ;;
 	omz)      install_omz ;;
+	p10k)     install_p10k ;;
 	shell)    set_login_shell ;;
 	ssh)      setup_ssh ;;
 	editor)   install_editor ;;
@@ -356,6 +375,7 @@ case "${1:-all}" in
 		install_firewall
 		install_rustup
 		install_omz
+		install_p10k
 		set_login_shell
 		setup_ssh
 		use_ssh_remote
