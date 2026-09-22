@@ -14,3 +14,9 @@ decorations = "None"
 
 [terminal]
 osc52 = "CopyPaste"
+
+[keyboard]
+bindings = [
+  # Ctrl+Backspace -> send Alt+Backspace (ESC DEL) so shells delete the previous word
+  { key = "Backspace", mods = "Control", chars = "\u001B\u007F" },
+]
