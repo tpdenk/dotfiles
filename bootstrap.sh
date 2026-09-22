@@ -34,16 +34,38 @@ install_omp() {
 install_editor() {
 	local EDITOR=ed
 	local EDITOR_REPO="git@github.com:tpdenk/ed.git"
+	local EDITOR_BIN="${CARGO_HOME:-$HOME/.cargo}/bin/$EDITOR"
 	log "editor"
 	have cargo || die "cargo not on PATH, run ./bootstrap.sh rustup first"
 	mkdir -p "$HOME/Development/tpdenk"
 	pushd "$HOME/Development/tpdenk" >/dev/null
+	local build=0 dirty=0 reason="" before="" after=""
 	if [[ -e "$EDITOR" ]]; then
-		git -C "$EDITOR" pull
+		before="$(git -C "$EDITOR" rev-parse HEAD)"
+		[[ -z "$(git -C "$EDITOR" status --porcelain)" ]] || dirty=1
+		# A dirty worktree makes git pull refuse; that is fine, we rebuild anyway.
+		if ! git -C "$EDITOR" pull; then
+			(( dirty )) || die "git pull failed in $PWD/$EDITOR"
+			warn "git pull skipped, worktree has local changes"
+		fi
+		after="$(git -C "$EDITOR" rev-parse HEAD)"
+		if [[ "$before" != "$after" ]]; then
+			build=1 reason="pulled ${before:0:12}..${after:0:12}"
+		elif (( dirty )); then
+			build=1 reason="local changes"
+		elif [[ ! -x "$EDITOR_BIN" ]]; then
+			build=1 reason="$EDITOR_BIN missing"
+		fi
 	else
 		git clone "$EDITOR_REPO"
+		build=1 reason="fresh clone"
 	fi
-	cargo install --path "$EDITOR"
+	if (( build )); then
+		log "building editor: $reason"
+		cargo install --path "$EDITOR"
+	else
+		log "editor already up to date, skipping cargo install"
+	fi
 	popd >/dev/null
 }
 
