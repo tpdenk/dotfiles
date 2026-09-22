@@ -19,6 +19,7 @@ fzf
 gcc
 git
 git-lfs
+github-cli
 gpu-screen-recorder
 gst-plugin-pipewire
 hexyl

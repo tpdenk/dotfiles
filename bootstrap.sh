@@ -13,7 +13,8 @@
 #   ./bootstrap.sh rustup     just the rust toolchain
 #   ./bootstrap.sh omz        just oh-my-zsh
 #   ./bootstrap.sh p10k       just the powerlevel10k prompt
-#   ./bootstrap.sh ssh        just the ssh key setup
+#   ./bootstrap.sh ssh        just the ssh key setup (keygen, gh login, upload)
+#   ./bootstrap.sh gh         just the gh device-flow login
 #   ./bootstrap.sh editor     just the editor installation
 #   ./bootstrap.sh omp        just install omp (oh-my-pi)
 
@@ -122,6 +123,80 @@ github_ssh_ok() {
 	[[ "$out" == *"successfully authenticated"* ]]
 }
 
+pubkey_body() { awk '{ print $1, $2 }' "$1"; }
+
+gh_has_key() {
+	gh api --paginate "$1" --jq '.[].key' 2>/dev/null | grep -qxF "$(pubkey_body "$2")"
+}
+
+GH_SCOPES="admin:public_key,admin:ssh_signing_key"
+
+browser_available() {
+	[[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]] || return 1
+	[[ -n "${BROWSER:-}" ]] && return 0
+	local b
+	for b in firefox librewolf chromium google-chrome-stable google-chrome \
+	         brave vivaldi-stable qutebrowser epiphany falkon; do
+		have "$b" && return 0
+	done
+	return 1
+}
+
+gh_device_flow() {
+	log "gh device flow: enter the one-time code gh prints below"
+	if browser_available; then
+		echo "  a browser opens on https://github.com/login/device, or use that URL elsewhere"
+		gh "$@" --hostname github.com --scopes "$GH_SCOPES"
+	else
+		echo "  no browser here: open https://github.com/login/device on another device"
+		GH_BROWSER=true BROWSER=true gh "$@" --hostname github.com --scopes "$GH_SCOPES"
+	fi
+}
+
+setup_gh() {
+	have gh || die "gh not installed, run ./bootstrap.sh pkgs first"
+
+	if ! gh auth status --hostname github.com >/dev/null 2>&1; then
+		gh_device_flow auth login --web --git-protocol ssh --skip-ssh-key \
+			|| die "gh auth login failed"
+		return
+	fi
+
+	log "gh already authenticated"
+
+	local have_scopes scope
+	have_scopes="$(gh auth status --hostname github.com 2>/dev/null | sed -n "s/.*Token scopes: //p" | tr -d " '")"
+	for scope in ${GH_SCOPES//,/ }; do
+		case ",$have_scopes," in
+			*",$scope,"*) ;;
+			*) log "token is missing $scope, refreshing"
+			   gh_device_flow auth refresh || die "gh auth refresh failed"
+			   return ;;
+		esac
+	done
+}
+
+upload_github_keys() {
+	local key="$1"
+	local title="$USER@$(uname -n)"
+
+	if gh_has_key user/keys "$key.pub"; then
+		log "authentication key already on github"
+	else
+		log "uploading authentication key"
+		gh ssh-key add "$key.pub" --title "$title" --type authentication \
+			|| die "could not upload the authentication key"
+	fi
+
+	if gh_has_key user/ssh_signing_keys "$key.pub"; then
+		log "signing key already on github"
+	else
+		log "uploading signing key"
+		gh ssh-key add "$key.pub" --title "$title" --type signing \
+			|| warn "could not upload the signing key, commit signatures stay unverified"
+	fi
+}
+
 setup_ssh() {
 	local key="$HOME/.ssh/id_ed25519"
 	local st=0
@@ -147,13 +222,20 @@ setup_ssh() {
 		1) ssh-add "$key" || warn "ssh-add failed, continuing" ;;
 	esac
 
-	if github_ssh_ok; then
-		log "github ssh auth ok"
+	if have gh; then
+		setup_gh
+		upload_github_keys "$key"
 	else
+		warn "gh not installed, falling back to manual key upload"
 		log "add this public key at https://github.com/settings/ssh/new"
 		printf '\n%s\n\n' "$(< "$key.pub")"
 		read -rp "press enter once GitHub has the key... " _
-		github_ssh_ok || die "github still refuses the key, check https://github.com/settings/keys"
+	fi
+
+	if github_ssh_ok; then
+		log "github ssh auth ok"
+	else
+		die "github refuses the key, check https://github.com/settings/keys"
 	fi
 }
 
@@ -379,6 +461,7 @@ case "${1:-all}" in
 	p10k)     install_p10k ;;
 	shell)    set_login_shell ;;
 	ssh)      setup_ssh ;;
+	gh)       setup_gh ;;
 	editor)   install_editor ;;
 	omp)      install_omp ;;
 	all)
