@@ -7,6 +7,7 @@ import QtQuick
 import qs
 import qs.audio
 import qs.bluetooth
+import qs.docker
 import qs.network
 import qs.power
 import qs.screenrecord
@@ -79,6 +80,10 @@ Scope {
                     rightMargin: 8
                 }
                 spacing: 6
+
+                DockerIndicator {
+                    anchors.verticalCenter: parent.verticalCenter
+                }
 
                 AudioIndicator {
                     anchors.verticalCenter: parent.verticalCenter
