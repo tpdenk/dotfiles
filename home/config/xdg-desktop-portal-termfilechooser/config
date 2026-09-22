@@ -1,0 +1,7 @@
+[filechooser]
+cmd=lf-wrapper.sh
+default_dir=$HOME
+env=TERMCMD=alacritty --class filechooser --title filechooser -e
+open_mode=suggested
+save_mode=suggested
+create_help_file=0

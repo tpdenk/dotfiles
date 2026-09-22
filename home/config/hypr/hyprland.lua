@@ -28,3 +28,11 @@ hl.window_rule({
 
     no_focus = true,
 })
+
+hl.window_rule({
+    name = "float-file-chooser",
+    match = { class = "^filechooser$" },
+
+    float = true,
+    size = { 1536, 1008 },
+})
