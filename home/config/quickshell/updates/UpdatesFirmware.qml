@@ -18,6 +18,7 @@ SelectList {
 
         width: ListView.view.width
         label: row.modelData.name
+        labelColor: row.modelData.blocked ? Theme.muted : Theme.text
         onClicked: FirmwareStatus.update(row.modelData)
 
         Text {

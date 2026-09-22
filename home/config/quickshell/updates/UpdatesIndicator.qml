@@ -5,11 +5,16 @@ import qs.widgets
 Pill {
     id: root
 
-    glyph: UpdatesStatus.icon
-    label: UpdatesStatus.label
+    readonly property bool packagesShown: UpdatesStatus.count > 0 || UpdatesStatus.failed
+    readonly property bool firmwareShown: FirmwareStatus.devices.length > 0 || FirmwareStatus.failed
+
+    visible: packagesShown || firmwareShown
+
+    glyph: packagesShown ? UpdatesStatus.icon : ""
+    label: packagesShown ? UpdatesStatus.label : ""
     highlight: UpdatesStatus.expanded
-    glyphColor: UpdatesStatus.failed ? Theme.alert : UpdatesStatus.count > 0 ? Theme.accent : Theme.muted
-    labelColor: UpdatesStatus.count > 0 ? Theme.brightText : Theme.muted
+    glyphColor: UpdatesStatus.failed ? Theme.alert : Theme.accent
+    labelColor: Theme.brightText
 
     onClicked: Panels.toggle("updates")
 
@@ -24,7 +29,7 @@ Pill {
 
     Row {
         anchors.verticalCenter: parent.verticalCenter
-        visible: FirmwareStatus.count > 0 || FirmwareStatus.failed
+        visible: root.firmwareShown
         spacing: 6
 
         Text {
@@ -32,7 +37,7 @@ Pill {
             text: FirmwareStatus.icon
             font.family: Theme.fontFamily
             font.pointSize: Theme.h2Size
-            color: FirmwareStatus.failed ? Theme.alert : Theme.accentSecondary
+            color: FirmwareStatus.failed ? Theme.alert : FirmwareStatus.blocked > 0 ? Theme.warning : Theme.accentSecondary
         }
 
         Text {

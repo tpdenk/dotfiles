@@ -10,19 +10,22 @@ Singleton {
     readonly property int interval: 300000
 
     property var devices: []
-    readonly property int count: devices.length
+    readonly property int count: devices.filter(d => !d.blocked).length
+    readonly property int blocked: devices.length - count
 
     property bool failed: false
     property bool pending: false
 
     readonly property string icon: String.fromCodePoint(0xf061a) // chip
-    readonly property string label: failed ? "?" : String(count)
+    readonly property string label: failed ? "?" : String(devices.length)
 
     function versionLabel(device: var): string {
-        return `${device.installed} → ${device.available}`;
+        return device.blocked ? device.blocked : `${device.installed} → ${device.available}`;
     }
 
     function update(device: var): void {
+        if (device.blocked)
+            return;
         Panels.close("updates");
         UpdatesStatus.run(["fwupdmgr", "update", device.id]);
     }
@@ -61,14 +64,15 @@ Singleton {
     function parse(text: string): var {
         const rows = [];
         for (const line of text.split("\n")) {
-            const [id, name, installed, available] = line.split("\t");
+            const [id, name, installed, available, blocked] = line.split("\t");
             if (!id)
                 continue;
             rows.push({
                 id: id,
                 name: name || id,
                 installed: installed ?? "",
-                available: available ?? ""
+                available: available ?? "",
+                blocked: blocked ?? ""
             });
         }
         return rows;

@@ -2,7 +2,7 @@
 #
 # fw-updates: pending firmware updates, one per line, as
 #
-#   <device id>\t<name>\t<installed version>\t<available version>
+#   <device id>\t<name>\t<installed version>\t<available version>\t<blocked reason>
 set -eu
 
 command -v fwupdmgr >/dev/null 2>&1 || exit 0
@@ -15,5 +15,6 @@ esac
 printf '%s' "$json" | jq -r '
 	(.Devices // [])[]
 	| select((.Releases // []) | length > 0)
-	| [.DeviceId, .Name, (.Version // ""), (.Releases[0].Version // "")]
+	| [.DeviceId, .Name, (.Version // ""), (.Releases[0].Version // ""),
+	   (.UpdateError // (if ((.Flags // []) | index("updatable")) then "" else "not updatable" end))]
 	| @tsv'
