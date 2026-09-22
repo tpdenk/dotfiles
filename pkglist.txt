@@ -1,8 +1,11 @@
 alacritty
 base
 base-devel
+bash-language-server
 bat
 bazel
+bluez
+bluez-utils
 btop
 btrfs-progs
 docker
@@ -11,9 +14,11 @@ efibootmgr
 eza
 fastfetch
 fd
+fwupd
 fzf
 gcc
 git
+git-lfs
 gpu-screen-recorder
 gst-plugin-pipewire
 hexyl
@@ -32,6 +37,7 @@ linux-firmware
 man-db
 mkinitcpio
 networkmanager
+noto-fonts-emoji
 openssh
 pipewire
 pipewire-alsa
@@ -39,10 +45,12 @@ pipewire-jack
 pipewire-pulse
 pkgconf
 polkit-kde-agent
+power-profiles-daemon
 quickshell
 ripgrep
 sd
 slurp
+snapper
 sudo
 terminus-font
 tree
