@@ -10,8 +10,7 @@ import qs
 Singleton {
     id: root
 
-    // whether the details panel is open; visibility and scanning both follow
-    // it
+    // visibility and scanning both follow the panel being open
     readonly property bool expanded: Panels.open === "bluetooth"
 
     // the controller the bar icon speaks for. A second adapter would need a

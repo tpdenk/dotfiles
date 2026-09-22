@@ -13,7 +13,6 @@ Rectangle {
     property color labelColor: Theme.text
     // elide the label past this width; 0 leaves it unbounded
     property real labelLimit: 0
-    // the panel this chip opens is open
     property bool highlight: false
 
     default property alias content: row.data
@@ -52,8 +51,6 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             visible: text !== ""
             text: root.label
-            // 0 means "as wide as it needs"; a wifi SSID is the one label
-            // long enough to need a cap
             width: root.labelLimit > 0 ? Math.min(implicitWidth, root.labelLimit) : implicitWidth
             elide: Text.ElideRight
             font.family: Theme.fontFamily

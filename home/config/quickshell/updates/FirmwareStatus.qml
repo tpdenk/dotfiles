@@ -1,20 +1,15 @@
 pragma Singleton
 import Quickshell
-import Quickshell.Io
-import QtQuick
 import qs
 
+// Pending firmware upgrades, as `fw-updates` lists them from fwupd.
 Singleton {
     id: root
-
-    readonly property int interval: 300000
 
     property var devices: []
     readonly property int count: devices.filter(d => !d.blocked).length
     readonly property int blocked: devices.length - count
-
     property bool failed: false
-    property bool pending: false
 
     readonly property string icon: String.fromCodePoint(0xf061a) // chip
     readonly property string label: failed ? "?" : String(devices.length)
@@ -24,41 +19,22 @@ Singleton {
     }
 
     function update(device: var): void {
-        if (device.blocked)
-            return;
-        Panels.close("updates");
-        UpdatesStatus.run(["fwupdmgr", "update", device.id]);
+        if (!device.blocked)
+            UpdatesStatus.runInTerminal(["fwupdmgr", "update", device.id]);
     }
 
-    function refresh(): void {
-        root.pending = true;
-        proc.running = true;
-    }
-
-    function fail(): void {
-        root.devices = [];
-        root.pending = false;
-        root.failed = true;
-    }
-
-    Process {
-        id: proc
+    Poll {
         command: [Quickshell.env("HOME") + "/.local/bin/fw-updates"]
+        interval: 300000
 
-        stdout: StdioCollector {
-            onStreamFinished: root.devices = root.parse(this.text)
+        onFinished: text => {
+            root.devices = root.parse(text);
+            root.failed = false;
         }
-
-        onExited: code => {
-            root.pending = false;
-            if (code === 0)
-                root.failed = false;
-            else
-                root.fail();
+        onFailed: {
+            root.devices = [];
+            root.failed = true;
         }
-
-        onRunningChanged: if (!running && root.pending)
-            root.fail()
     }
 
     function parse(text: string): var {
@@ -76,13 +52,5 @@ Singleton {
             });
         }
         return rows;
-    }
-
-    Timer {
-        interval: root.interval
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: root.refresh()
     }
 }

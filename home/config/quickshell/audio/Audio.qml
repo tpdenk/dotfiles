@@ -1,37 +1,19 @@
 import Quickshell
 import Quickshell.Io
-import QtQuick
-import qs
 import qs.widgets
 
-// Audio details, shown under the bar's AudioIndicator.
+// Audio details, shown under the bar's AudioIndicator, and the media keys.
 Scope {
-    id: root
-
-    SidePanel {
-        visible: AudioStatus.expanded
-        layerNamespace: "audio"
-
-        card: Component {
-            AudioPanel {}
-        }
+    Dropdown {
+        name: "audio"
+        card: AudioPanel {}
     }
 
+    // the media keys act on the default output, the same device the bar
+    // indicator and the panel's first slider show
     IpcHandler {
         target: "audio"
 
-        function toggle(): void {
-            Panels.toggle("audio");
-        }
-        function open(): void {
-            Panels.show("audio");
-        }
-        function close(): void {
-            Panels.close("audio");
-        }
-
-        // media keys: they act on the default output, the same device the bar
-        // indicator and the panel's first slider show
         function volumeUp(): void {
             AudioStatus.stepVolume(AudioStatus.sink, AudioStatus.volumeStep);
         }

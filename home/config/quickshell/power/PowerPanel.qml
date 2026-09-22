@@ -28,25 +28,12 @@ PanelCard {
         width: parent.width
     }
 
-    Item {
+    LabeledRow {
         width: parent.width
-        implicitHeight: Math.max(profileLabel.implicitHeight, profileSwitch.implicitHeight)
-
-        Text {
-            id: profileLabel
-            anchors.verticalCenter: parent.verticalCenter
-            text: "Profile"
-            font.family: Theme.fontFamily
-            font.pointSize: Theme.fontSize
-            color: Theme.muted
-        }
+        label: "Profile"
 
         Segmented {
-            id: profileSwitch
-            anchors {
-                right: parent.right
-                verticalCenter: parent.verticalCenter
-            }
+            anchors.verticalCenter: parent.verticalCenter
             enabled: PowerStatus.profilesAvailable
             options: PowerStatus.profiles.map(entry => entry.label)
             current: PowerStatus.profileIndex

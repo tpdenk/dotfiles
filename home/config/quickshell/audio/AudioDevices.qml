@@ -31,7 +31,7 @@ SelectList {
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: `${Math.round((row.modelData.audio?.volume ?? 0) * 100)}%`
+            text: AudioStatus.percent(row.modelData)
             font.family: Theme.fontFamily
             font.pointSize: Theme.smallSize
             color: Theme.muted

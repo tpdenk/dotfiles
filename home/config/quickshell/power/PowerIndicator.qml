@@ -16,7 +16,7 @@ Pill {
     label: PowerStatus.barLabel
     glyphColor: PowerStatus.hasBattery ? root.tint : Theme.accent
     labelColor: PowerStatus.hasBattery ? root.tint : Theme.text
-    highlight: PowerStatus.expanded
+    highlight: Panels.open === "power"
 
     onClicked: Panels.toggle("power")
 

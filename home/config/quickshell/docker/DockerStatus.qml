@@ -1,17 +1,12 @@
 pragma Singleton
 import Quickshell
 import Quickshell.Io
-import QtQuick
 import qs
 
 // The local docker engine: the containers it knows about, counted for the bar
 // chip and listed in the panel.
 Singleton {
     id: root
-
-    readonly property bool expanded: Panels.open === "docker"
-
-    readonly property int interval: 5000
 
     property bool available: false
     property var containers: []
@@ -99,8 +94,6 @@ Singleton {
     readonly property string icon: String.fromCodePoint(0xf0868) // docker
     readonly property string label: String(count)
 
-    property bool pending: false
-
     // one command at a time: `docker stop` sits for its ten second timeout,
     // and a second click would otherwise take the process out from under the
     // first
@@ -129,37 +122,21 @@ Singleton {
         actionProc.running = true;
     }
 
-    function refresh(): void {
-        root.pending = true;
-        proc.running = true;
-    }
-
-    function drop(): void {
-        root.pending = false;
-        root.available = false;
-        root.containers = [];
-    }
-
-    Process {
-        id: proc
+    // `docker ps` from a machine without docker, or with its daemon down,
+    // fails the same way: the chip hides and the panel says so
+    Poll {
+        id: poll
         command: ["docker", "ps", "--all", "--format", '{{.ID}}\t{{.Names}}\t{{.State}}\t{{.Status}}\t{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.service"}}']
+        interval: 5000
 
-        stdout: StdioCollector {
-            onStreamFinished: root.containers = root.parse(this.text)
+        onFinished: text => {
+            root.containers = root.parse(text);
+            root.available = true;
         }
-
-        onExited: code => {
-            root.pending = false;
-            if (code === 0)
-                root.available = true;
-            else
-                root.drop();
+        onFailed: {
+            root.available = false;
+            root.containers = [];
         }
-
-        // no docker binary at all drops `running` without ever reaching
-        // `exited`, and the chip would keep its last count
-        onRunningChanged: if (!running && root.pending)
-            root.drop()
     }
 
     Process {
@@ -170,7 +147,7 @@ Singleton {
         // old state until then
         onExited: {
             root.busyKey = "";
-            root.refresh();
+            poll.refresh();
         }
 
         onRunningChanged: if (!running)
@@ -192,14 +169,6 @@ Singleton {
                 service: service ?? ""
             });
         }
-        return rows.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    Timer {
-        interval: root.interval
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: root.refresh()
+        return rows;
     }
 }

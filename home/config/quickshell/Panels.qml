@@ -11,9 +11,6 @@ Singleton {
     function toggle(name: string): void {
         root.open = root.open === name ? "" : name;
     }
-    function show(name: string): void {
-        root.open = name;
-    }
     function close(name: string): void {
         if (root.open === name)
             root.open = "";

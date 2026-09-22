@@ -118,11 +118,5 @@ Scope {
         function toggle(): void {
             win.visible = !win.visible;
         }
-        function open(): void {
-            win.visible = true;
-        }
-        function close(): void {
-            win.visible = false;
-        }
     }
 }

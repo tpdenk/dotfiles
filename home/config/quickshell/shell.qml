@@ -37,4 +37,13 @@ ShellRoot {
             Quickshell.reload(true);
         }
     }
+
+    // `qs ipc call panels toggle <name>`, for the dropdowns' keybinds
+    IpcHandler {
+        target: "panels"
+
+        function toggle(name: string): void {
+            Panels.toggle(name);
+        }
+    }
 }

@@ -1,21 +1,15 @@
 pragma Singleton
 import Quickshell
-import Quickshell.Io
-import QtQuick
 import qs
 
+// Pending pacman upgrades, as `pkg-updates` lists them: counted for the bar
+// chip, grouped by build for the panel.
 Singleton {
     id: root
 
-    readonly property bool expanded: Panels.open === "updates"
-
-    readonly property int interval: 15000
-
     property var packages: []
     readonly property int count: packages.length
-
     property bool failed: false
-    property bool pending: false
 
     readonly property var kernel: packages.find(entry => /^linux(-(lts|zen|hardened|rt|rt-lts))?$/.test(entry.name)) ?? null
     readonly property bool kernelUpdate: kernel !== null
@@ -55,59 +49,42 @@ Singleton {
     function versionLabel(group: var): string {
         const from = group.installed.replace(/^\d+:/, "");
         const to = group.available.replace(/^\d+:/, "");
-        const rebuild = from.replace(/-[^-]*$/, "") === to.replace(/-[^-]*$/, "");
-        return rebuild ? `${from} → -${to.split("-").pop()}` : `${from.replace(/-[^-]*$/, "")} → ${to.replace(/-[^-]*$/, "")}`;
+        const pkgver = version => version.replace(/-[^-]*$/, "");
+        if (pkgver(from) === pkgver(to))
+            return `${from} → -${to.split("-").pop()}`;
+        return `${pkgver(from)} → ${pkgver(to)}`;
     }
 
     // pacman and fwupdmgr want root and ask questions, so they run in a
-    // terminal the answers can be typed into
-    function run(args: var): void {
+    // terminal the answers can be typed into, and the panel gets out of the
+    // way of it
+    function runInTerminal(args: var): void {
+        Panels.close("updates");
         Quickshell.execDetached(["xdg-terminal-exec", "sh", "-c", 'sudo "$@"; printf "\n[enter] to close"; read _', "updates", ...args]);
     }
 
     function updateAll(): void {
-        Panels.close("updates");
-        root.run(["pacman", "-Syu"]);
+        root.runInTerminal(["pacman", "-Syu"]);
     }
 
     // one build on its own: a partial upgrade, which holds until a shared
     // library moves underneath something left behind
     function update(group: var): void {
-        Panels.close("updates");
-        root.run(["pacman", "-Sy", "--needed", ...group.names]);
+        root.runInTerminal(["pacman", "-Sy", "--needed", ...group.names]);
     }
 
-    function refresh(): void {
-        root.pending = true;
-        proc.running = true;
-    }
-
-    function fail(): void {
-        root.packages = [];
-        root.pending = false;
-        root.failed = true;
-    }
-
-    Process {
-        id: proc
+    Poll {
         command: [Quickshell.env("HOME") + "/.local/bin/pkg-updates"]
+        interval: 15000
 
-        stdout: StdioCollector {
-            onStreamFinished: root.packages = root.parse(this.text)
+        onFinished: text => {
+            root.packages = root.parse(text);
+            root.failed = false;
         }
-
-        onExited: code => {
-            root.pending = false;
-            if (code === 0)
-                root.failed = false;
-            else
-                root.fail();
+        onFailed: {
+            root.packages = [];
+            root.failed = true;
         }
-
-        // a script that cannot be run at all drops `running` without ever
-        // reaching `exited`, and the chip would keep its last count
-        onRunningChanged: if (!running && root.pending)
-            root.fail()
     }
 
     function parse(text: string): var {
@@ -124,13 +101,5 @@ Singleton {
             });
         }
         return rows;
-    }
-
-    Timer {
-        interval: root.interval
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: root.refresh()
     }
 }

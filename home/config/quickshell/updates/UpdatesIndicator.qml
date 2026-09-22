@@ -12,7 +12,7 @@ Pill {
 
     glyph: packagesShown ? UpdatesStatus.icon : ""
     label: packagesShown ? UpdatesStatus.label : ""
-    highlight: UpdatesStatus.expanded
+    highlight: Panels.open === "updates"
     glyphColor: UpdatesStatus.failed ? Theme.alert : Theme.accent
     labelColor: Theme.brightText
 

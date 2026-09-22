@@ -1,15 +1,11 @@
 pragma Singleton
 import Quickshell
 import Quickshell.Services.Pipewire
-import qs
 
 // State of the machine's audio: the PipeWire default sink and source, their
 // volume and mute, and the devices the panel can switch between.
 Singleton {
     id: root
-
-    // whether the details panel is open
-    readonly property bool expanded: Panels.open === "audio"
 
     readonly property var sink: Pipewire.defaultAudioSink
     readonly property var source: Pipewire.defaultAudioSource
@@ -36,11 +32,13 @@ Singleton {
         return node ? node.description || node.nickname || node.name || "" : "";
     }
 
+    function percent(node: var): string {
+        return `${Math.round((node?.audio?.volume ?? 0) * 100)}%`;
+    }
+
     // no sink means nothing is audible, which reads as muted
     readonly property real volume: sink?.audio?.volume ?? 0
     readonly property bool muted: sink?.audio?.muted ?? true
-    readonly property real inputVolume: source?.audio?.volume ?? 0
-    readonly property bool inputMuted: source?.audio?.muted ?? true
 
     function setVolume(node: var, v: real): void {
         if (!node?.audio)
@@ -54,8 +52,6 @@ Singleton {
         node.audio.muted = m;
     }
 
-    // one detent of the volume keys, and one press of a keyboard's volume
-    // rocker
     readonly property real volumeStep: 0.05
 
     // turning it up while muted means "make it audible", so stepping up
@@ -90,9 +86,6 @@ Singleton {
     // `volume-low` draws no waves at all, so it is kept for the last few
     // percent before silence: anything actually audible shows a wave.
     readonly property string icon: String.fromCodePoint(muted || volume <= 0 ? 0xf0581 : volume <= 0.05 ? 0xf057f : volume < 0.5 ? 0xf0580 : 0xf057e)
-
-    // the bar pill's text; muted still shows the level it would return to
-    readonly property string volumeLabel: `${Math.round(volume * 100)}%`
 
     // pipewire only streams a node's volume/mute while something binds it
     PwObjectTracker {

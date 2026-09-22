@@ -7,25 +7,12 @@ import qs.widgets
 PanelCard {
     title: "Bluetooth"
 
-    Item {
+    LabeledRow {
         width: parent.width
-        implicitHeight: Math.max(adapterName.implicitHeight, toggle.implicitHeight)
-
-        Text {
-            id: adapterName
-            anchors.verticalCenter: parent.verticalCenter
-            text: BluetoothStatus.adapterName || "No adapter"
-            font.family: Theme.fontFamily
-            font.pointSize: Theme.fontSize
-            color: Theme.muted
-        }
+        label: BluetoothStatus.adapterName || "No adapter"
 
         Toggle {
-            id: toggle
-            anchors {
-                right: parent.right
-                verticalCenter: parent.verticalCenter
-            }
+            anchors.verticalCenter: parent.verticalCenter
             enabled: BluetoothStatus.present
             checked: BluetoothStatus.enabled
             onToggled: on => BluetoothStatus.setEnabled(on)

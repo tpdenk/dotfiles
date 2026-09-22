@@ -14,25 +14,12 @@ PanelCard {
 
     // the switch belongs to the selected interface, not to networking as a
     // whole, so it lives inside the tab's own content
-    Item {
+    LabeledRow {
         width: parent.width
-        implicitHeight: Math.max(interfaceName.implicitHeight, toggle.implicitHeight)
-
-        Text {
-            id: interfaceName
-            anchors.verticalCenter: parent.verticalCenter
-            text: NetworkStatus.device?.name ?? "No interface"
-            font.family: Theme.fontFamily
-            font.pointSize: Theme.fontSize
-            color: Theme.muted
-        }
+        label: NetworkStatus.device?.name ?? "No interface"
 
         Toggle {
-            id: toggle
-            anchors {
-                right: parent.right
-                verticalCenter: parent.verticalCenter
-            }
+            anchors.verticalCenter: parent.verticalCenter
             enabled: !!NetworkStatus.device
             checked: NetworkStatus.enabled
             onToggled: on => NetworkStatus.setEnabled(NetworkStatus.device, on)
@@ -43,7 +30,6 @@ PanelCard {
         width: parent.width
     }
 
-    // what this interface is attached to
     Stat {
         width: parent.width
         label: "Status"
@@ -52,38 +38,21 @@ PanelCard {
         value: NetworkStatus.connected ? `${NetworkStatus.status} · ${NetworkStatus.connectivity}` : NetworkStatus.status
     }
 
-    Item {
+    LabeledRow {
         width: parent.width
-        implicitHeight: qualityLabel.implicitHeight
+        label: "Quality"
 
         Text {
-            id: qualityLabel
-            anchors.left: parent.left
-            text: "Quality"
+            anchors.verticalCenter: parent.verticalCenter
+            text: NetworkStatus.qualityLabel
             font.family: Theme.fontFamily
             font.pointSize: Theme.fontSize
-            color: Theme.muted
+            color: Theme.text
         }
 
-        Row {
-            anchors {
-                right: parent.right
-                verticalCenter: parent.verticalCenter
-            }
-            spacing: 6
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: NetworkStatus.qualityLabel
-                font.family: Theme.fontFamily
-                font.pointSize: Theme.fontSize
-                color: Theme.text
-            }
-
-            SignalBars {
-                anchors.verticalCenter: parent.verticalCenter
-                level: NetworkStatus.quality
-            }
+        SignalBars {
+            anchors.verticalCenter: parent.verticalCenter
+            level: NetworkStatus.quality
         }
     }
 
@@ -119,7 +88,6 @@ PanelCard {
         width: parent.width
     }
 
-    // addressing
     Stat {
         width: parent.width
         label: "IPv4"

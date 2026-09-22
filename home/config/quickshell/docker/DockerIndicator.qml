@@ -9,7 +9,7 @@ Pill {
     glyph: DockerStatus.icon
     label: DockerStatus.label
     labelColor: Theme.brightText
-    highlight: DockerStatus.expanded
+    highlight: Panels.open === "docker"
 
     onClicked: Panels.toggle("docker")
 }

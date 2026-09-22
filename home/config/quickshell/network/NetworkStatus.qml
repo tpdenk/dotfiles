@@ -11,8 +11,7 @@ import qs
 Singleton {
     id: root
 
-    // whether the details panel is open; metric polling and wifi scanning
-    // both follow it
+    // metric polling and wifi scanning both follow the panel being open
     readonly property bool expanded: Panels.open === "network"
 
     readonly property var devices: Networking.devices.values.filter(d => d.type === DeviceType.Wired || d.type === DeviceType.Wifi)

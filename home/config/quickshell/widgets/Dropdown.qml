@@ -1,20 +1,24 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+import qs
 
-// A dropdown window under the bar, holding one PanelCard.
+// A dropdown window under the bar, holding one PanelCard. `name` is its key
+// in Panels: `Panels.toggle(name)`, and `qs ipc call panels toggle <name>`,
+// show and hide it.
 PanelWindow { // qmllint disable uncreatable-type
     id: root
 
-    property string layerNamespace
+    required property string name
+    property Component card
     // only a dialog with a text field needs the keyboard; otherwise the panel
     // may sit open while you type in another window
     property bool grabKeyboard: false
     property bool centered: false
-    property Component card
 
+    visible: Panels.open === root.name
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: root.layerNamespace
+    WlrLayershell.namespace: root.name
     WlrLayershell.keyboardFocus: root.grabKeyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
 

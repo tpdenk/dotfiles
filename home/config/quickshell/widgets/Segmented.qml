@@ -48,7 +48,6 @@ Rectangle {
                     text: segment.modelData
                     font.family: Theme.fontFamily
                     font.pointSize: Theme.smallSize
-                    // the active segment is filled with the accent
                     color: segment.active ? Theme.background : root.enabled ? Theme.text : Theme.muted
                 }
 

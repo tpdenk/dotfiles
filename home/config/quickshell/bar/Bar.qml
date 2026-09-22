@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import Quickshell
-import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import QtQuick
@@ -17,8 +16,10 @@ import qs.widgets
 
 // The top strip: no surface of its own, only the pills floating on it.
 Scope {
-    id: root
-    property string time
+    SystemClock {
+        id: clock
+        precision: SystemClock.Seconds
+    }
 
     Variants {
         model: Quickshell.screens
@@ -49,15 +50,15 @@ Scope {
             }
 
             Pill {
-                id: clock
+                id: clockPill
                 anchors.centerIn: parent
-                label: root.time
+                label: Qt.formatDateTime(clock.date, "yyyy-MM-dd dddd HH:mm:ss")
                 labelColor: Theme.brightText
             }
 
             UpdatesIndicator {
                 anchors {
-                    right: clock.left
+                    right: clockPill.left
                     rightMargin: 6
                     verticalCenter: parent.verticalCenter
                 }
@@ -67,7 +68,7 @@ Scope {
             // come and go, and must not shuffle the indicators around
             Row {
                 anchors {
-                    left: clock.right
+                    left: clockPill.right
                     leftMargin: 6
                     verticalCenter: parent.verticalCenter
                 }
@@ -78,7 +79,6 @@ Scope {
                 ScreenRecordIndicator {}
             }
 
-            // the dropdown indicators share the top-right corner
             Row {
                 anchors {
                     right: parent.right
@@ -87,45 +87,16 @@ Scope {
                 }
                 spacing: 6
 
-                DockerIndicator {
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+                DockerIndicator {}
 
-                AudioIndicator {
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+                AudioIndicator {}
 
-                BluetoothIndicator {
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+                BluetoothIndicator {}
 
-                NetworkIndicator {
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+                NetworkIndicator {}
 
-                PowerIndicator {
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+                PowerIndicator {}
             }
         }
-    }
-
-    Process {
-        id: dateProc
-        command: ["date", "+%F %A %H:%M:%S"]
-        running: true
-
-        stdout: StdioCollector {
-            // `date` ends its line: kept, the label would be two lines tall
-            // and the text would sit above the pill's centre
-            onStreamFinished: root.time = this.text.trim()
-        }
-    }
-
-    Timer {
-        interval: 1000
-        running: true
-        repeat: true
-        onTriggered: dateProc.running = true
     }
 }
