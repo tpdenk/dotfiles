@@ -34,9 +34,3 @@ alias ls='eza'
 
 # Prompt
 [[ -r "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-# To customize prompt, run `p10k configure` or edit ~/.omp/wt/p10k-83581a9/home/p10k.zsh.
-[[ ! -f ~/.omp/wt/p10k-83581a9/home/p10k.zsh ]] || source ~/.omp/wt/p10k-83581a9/home/p10k.zsh
