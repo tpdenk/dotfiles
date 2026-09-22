@@ -6,6 +6,7 @@
 #   ./bootstrap.sh            everything, in the order below
 #   ./bootstrap.sh pkgs       just package installs
 #   ./bootstrap.sh links      just dotfile symlinks
+#                  -f/--force recreate and overwrite existing symlinks
 #   ./bootstrap.sh services   just systemctl enables
 #   ./bootstrap.sh firewall   just the ufw rules
 #   ./bootstrap.sh shell      just set zsh as the login shell
@@ -20,6 +21,7 @@ set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AUR_HELPER="${AUR_HELPER:-paru}"
+LINKS_FORCE=0
 
 log()  { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m warn:\033[0m %s\n' "$*" >&2; }
@@ -243,7 +245,9 @@ mark_scripts_executable() {
 link_one() {
 	local src="$1" dest="$2"
 	if [[ -L "$dest" ]]; then
-		[[ "$(readlink -f "$dest")" == "$(readlink -f "$src")" ]] && return
+		if (( ! LINKS_FORCE )) && [[ "$(readlink -f "$dest")" == "$(readlink -f "$src")" ]]; then
+			return
+		fi
 		rm "$dest"
 	elif [[ -e "$dest" ]]; then
 		mkdir -p "$backup"
@@ -355,6 +359,15 @@ enable_services() {
 		done
 	fi
 }
+
+args=()
+for arg in "$@"; do
+	case "$arg" in
+		-f|--force) LINKS_FORCE=1 ;;
+		*)          args+=("$arg") ;;
+	esac
+done
+set -- ${args[@]+"${args[@]}"}
 
 case "${1:-all}" in
 	pkgs)     install_pkgs ;;
