@@ -9,6 +9,7 @@ flags=""
 if (( allow_token )); then flags="r"; fi
 
 cache="${XDG_RUNTIME_DIR:-/tmp}/share-picker.last"
+area_file="${XDG_RUNTIME_DIR:-/tmp}/share-picker.area"
 cache_seconds=1
 
 if [[ -r $cache ]]; then
@@ -21,6 +22,7 @@ fi
 
 emit() {
 	printf '%s %s\n' "$(date +%s)" "$1" >"$cache"
+	printf '%s %s\n' "$(date +%s)" "$2" >"$area_file"
 	printf '%s\n' "$1"
 	exit 0
 }
@@ -76,6 +78,10 @@ selection="$(printf '%s' "$boxes" | slurp -o -f '%x %y %w %h %o %l' -b "$dim" -c
 
 read -r x y w h output label <<<"$selection"
 
+origin="$(jq -r --arg name "$output" '.[] | select(.name == $name) | "\(.x) \(.y)"' <<<"$monitors")"
+ox=0 oy=0
+if [[ -n $origin ]]; then read -r ox oy <<<"$origin"; fi
+
 # slurp keeps the label of the last box the pointer crossed even when the
 # selection ends up being a dragged region
 matches_box() {
@@ -87,7 +93,7 @@ matches_box() {
 if monitor="$(jq -r --arg name "$label" '.[] | select(.name == $name) | "\(.x) \(.y) \(.width / .scale | round) \(.height / .scale | round)"' <<<"$monitors")" && [[ -n $monitor ]]; then
 	read -r mx my mw mh <<<"$monitor"
 	if matches_box "$mx" "$my" "$mw" "$mh"; then
-		emit "$(printf '[SELECTION]%s/screen:%s' "$flags" "$label")"
+		emit "$(printf '[SELECTION]%s/screen:%s' "$flags" "$label")" "screen $label 0 0 $mw $mh -"
 	fi
 fi
 
@@ -106,7 +112,7 @@ if [[ $label == 0x* ]]; then
 			done < <(printf '%s' "${XDPH_WINDOW_SHARING_LIST-}" | sed 's/\[HA>\]/\n/g')
 
 			if [[ -n $handle ]]; then
-				emit "$(printf '[SELECTION]%s/window:%s' "$flags" "$handle")"
+				emit "$(printf '[SELECTION]%s/window:%s' "$flags" "$handle")" "window $output $(( wx - ox )) $(( wy - oy )) $ww $wh $label"
 			fi
 			x=$wx y=$wy w=$ww h=$wh
 		fi
@@ -114,11 +120,7 @@ if [[ $label == 0x* ]]; then
 fi
 
 # capture_output_region is output-local, not layout coordinates
-origin="$(jq -r --arg name "$output" '.[] | select(.name == $name) | "\(.x) \(.y)"' <<<"$monitors")"
-if [[ -n $origin ]]; then
-	read -r ox oy <<<"$origin"
-	x=$(( x - ox ))
-	y=$(( y - oy ))
-fi
+x=$(( x - ox ))
+y=$(( y - oy ))
 
-emit "$(printf '[SELECTION]%s/region:%s@%s,%s,%s,%s' "$flags" "$output" "$x" "$y" "$w" "$h")"
+emit "$(printf '[SELECTION]%s/region:%s@%s,%s,%s,%s' "$flags" "$output" "$x" "$y" "$w" "$h")" "region $output $x $y $w $h -"

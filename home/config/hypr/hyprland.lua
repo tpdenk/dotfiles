@@ -36,3 +36,10 @@ hl.window_rule({
     float = true,
     size = { 1536, 1008 },
 })
+
+hl.layer_rule({
+    name = "share-outline",
+    match = { namespace = "^share-outline$" },
+
+    no_anim = true,
+})

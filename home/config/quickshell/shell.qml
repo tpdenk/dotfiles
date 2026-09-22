@@ -9,6 +9,7 @@ import qs.network
 import qs.notifications
 import qs.power
 import qs.screenrecord
+import qs.screenshare
 import qs.updates
 
 ShellRoot {
@@ -21,6 +22,7 @@ ShellRoot {
     Notifications {}
     Power {}
     ScreenRecord {}
+    ScreenShare {}
     Updates {}
 
     IpcHandler {
