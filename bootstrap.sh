@@ -33,6 +33,89 @@ have() { command -v "$1" >/dev/null 2>&1; }
 [[ $EUID -ne 0 ]] || die "run as your normal user, not root"
 have sudo || die "sudo not installed"
 
+NET_CHECK_URL="${NET_CHECK_URL:-http://ping.archlinux.org/nm-check.txt}"
+
+online() {
+	if have curl; then
+		curl -fsS --max-time 5 -o /dev/null "$NET_CHECK_URL"
+	else
+		ping -c1 -W3 archlinux.org >/dev/null 2>&1
+	fi
+}
+
+wait_online() {
+	local i
+	for i in $(seq 10); do
+		online && return 0
+		sleep 2
+	done
+	return 1
+}
+
+wifi_connect() {
+	local ssid="$1" sec="$2" pass=""
+	log "connecting to $ssid"
+	if nmcli -t -f NAME connection show | sed 's/\\:/:/g' | grep -qxF "$ssid"; then
+		nmcli connection up id "$ssid" && return 0
+		warn "saved profile for $ssid failed"
+	fi
+	if [[ -n "$sec" && "$sec" != '--' ]]; then
+		read -rsp "  password for $ssid: " pass; echo
+		nmcli device wifi connect "$ssid" password "$pass"
+	else
+		nmcli device wifi connect "$ssid"
+	fi
+}
+
+require_online() {
+	log "checking internet connection"
+	
+	online && return
+	warn "no internet connection, and bootstrap needs one"
+	have nmcli || die "nmcli not found; connect manually (iwctl, dhcpcd, ...) and re-run"
+	[[ -t 0 ]] || die "not a tty; connect manually and re-run"
+
+	if ! systemctl is-active --quiet NetworkManager; then
+		log "starting NetworkManager"
+		sudo systemctl start NetworkManager
+		sleep 2
+	fi
+	nmcli radio wifi on >/dev/null 2>&1 || true
+
+	local -a ssids secs
+	local line sig sec ssid choice
+	while :; do
+		log "scanning for wifi networks"
+		ssids=(); secs=()
+		local -A seen=()
+		while IFS= read -r line; do
+			sig="${line%%:*}"; line="${line#*:}"
+			sec="${line%%:*}"; ssid="${line#*:}"
+			ssid="${ssid//\\:/:}"
+			[[ -n "$ssid" && -z "${seen[$ssid]:-}" ]] || continue
+			seen["$ssid"]=1
+			ssids+=("$ssid"); secs+=("$sec")
+			printf '  %2d) %-32s %3s%%  %s\n' "${#ssids[@]}" "$ssid" "$sig" "${sec:-open}"
+		done < <(nmcli device wifi rescan >/dev/null 2>&1 || true; sleep 2
+		         nmcli -t -f SIGNAL,SECURITY,SSID device wifi list --rescan no)
+		(( ${#ssids[@]} )) || warn "no networks found"
+
+		read -rp $'\n  number to connect, [r] rescan, [q] quit: ' choice
+		case "$choice" in
+			''|r|R) continue ;;
+			q|Q)    die "internet required" ;;
+			*[!0-9]*) warn "not a number"; continue ;;
+		esac
+		(( choice >= 1 && choice <= ${#ssids[@]} )) || { warn "out of range"; continue; }
+
+		if wifi_connect "${ssids[choice-1]}" "${secs[choice-1]}" && wait_online; then
+			log "online"
+			return
+		fi
+		warn "still offline after trying ${ssids[choice-1]}"
+	done
+}
+
 install_omp() {
 	log "omp"
 	if pgrep -x omp >/dev/null 2>&1; then
@@ -472,6 +555,11 @@ for arg in "$@"; do
 	esac
 done
 set -- ${args[@]+"${args[@]}"}
+
+case "${1:-all}" in
+	links|theme|services|shell|firewall) ;;
+	*) require_online ;;
+esac
 
 case "${1:-all}" in
 	pkgs)     install_pkgs ;;
