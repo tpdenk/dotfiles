@@ -28,7 +28,12 @@ have() { command -v "$1" >/dev/null 2>&1; }
 have sudo || die "sudo not installed"
 
 install_omp() {
-	curl -fsSL https://omp.sh/install | sh
+	log "omp"
+	if pgrep -x omp >/dev/null 2>&1; then
+		warn "omp is running, skipping update (close it and rerun: ./bootstrap.sh omp)"
+		return 0
+	fi
+	curl -fsSL https://omp.sh/install | sh || warn "omp install failed, continuing"
 }
 
 install_editor() {
