@@ -170,6 +170,23 @@ link_one() {
 	echo "  linked ${dest#"$HOME"/}"
 }
 
+make_user_dirs() {
+	local dirs="$DOTFILES/home/config/user-dirs.dirs" name dir
+	[[ -r "$dirs" ]] || return 0
+	while IFS='=' read -r name dir; do
+		[[ $name == XDG_*_DIR ]] || continue
+		dir="${dir%\"}"; dir="${dir#\"}"
+		case "$dir" in
+			'$HOME') continue ;;
+			'$HOME'/*) dir="$HOME${dir#\$HOME}" ;;
+			/*) ;;
+			*) continue ;;
+		esac
+		mkdir -p "$dir"
+		echo "  dir ${dir#"$HOME"/}"
+	done < "$dirs"
+}
+
 link_dotfiles() {
 	local src name dest_name backup
 	backup="$HOME/.config-backup-$(date +%Y%m%d%H%M%S)"
@@ -199,6 +216,8 @@ link_dotfiles() {
 		dest_name="$HOME/.local/bin/${name%.*}"
 		link_one "$src" "${dest_name}"
 	done
+
+	make_user_dirs
 }
 
 enable_services() {

@@ -1,4 +1,5 @@
 pragma Singleton
+import QtCore
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
@@ -15,7 +16,7 @@ import qs
 Singleton {
     id: root
 
-    readonly property string directory: Quickshell.env("HOME") + "/Videos/Screenrecordings"
+    readonly property string directory: decodeURIComponent(String(StandardPaths.writableLocation(StandardPaths.MoviesLocation)).replace(/^file:\/\//, "")) + "/Screenrecordings"
 
     // the breather between picking a target and the encoder starting: long
     // enough to put the window in front and take the pointer off it
@@ -80,12 +81,6 @@ Singleton {
         root.startedAt = Date.now();
         root.elapsed = 0;
 
-        // the region form of `-w` takes compositor coordinates, the same ones
-        // slurp reports, and encodes at the monitor's real pixel size; cfr
-        // rather than the default variable framerate, as these files get
-        // handed to players and editors that stutter on a vfr mp4.
-        // The directory is made here rather than at link time: a fresh install
-        // has no ~/Videos, and the encoder will not create the file's parent.
         recorder.command = ["sh", "-c", 'mkdir -p "$1" && shift && exec "$@"', "screenrecord", root.directory, "gpu-screen-recorder", "-w", root.source, "-f", String(root.fps), "-fm", "cfr", "-o", root.path];
         recorder.running = true;
     }

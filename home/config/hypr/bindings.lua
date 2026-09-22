@@ -18,7 +18,7 @@ hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("qs ipc call audio volumeUp"), {
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("qs ipc call audio volumeDown"), { locked = true, repeating = true })
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("qs ipc call audio toggleMute"), { locked = true })
 
-local screenshot = "hyprshot -z -o $HOME/Pictures/Screenshots"
+local screenshot = 'hyprshot -z -o "$(xdg-user-dir PICTURES)/Screenshots"'
 hl.bind("PRINT", hl.dsp.exec_cmd(screenshot .. " -m region"))
 hl.bind("SUPER + PRINT", hl.dsp.exec_cmd("qs ipc call screenrecord start"))
 
