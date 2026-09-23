@@ -17,7 +17,8 @@ Singleton {
     // exists (reporting nothing present) on a machine without any
     readonly property var battery: UPower.displayDevice
     readonly property bool hasBattery: battery?.isPresent ?? false
-    readonly property real charge: battery?.percentage ?? 0
+    // quickshell reports percentage as a 0–1 fraction; everything below wants 0–100
+    readonly property real charge: (battery?.percentage ?? 0) * 100
 
     readonly property int batteryState: battery?.state ?? UPowerDeviceState.Unknown
     readonly property bool charging: batteryState === UPowerDeviceState.Charging || batteryState === UPowerDeviceState.PendingCharge
@@ -66,12 +67,15 @@ Singleton {
     // An APU's PPT and a CPU driver's RAPL counter are one package measured
     // twice: AMD's package energy MSR covers the graphics block too. They
     // never quite agree, so only the firmware-averaged PPT is kept.
+    //
+    // Discharging, the battery's rate is everything the machine draws: a total,
+    // not a device. Charging, it is what flows into the cells, which is no draw.
     readonly property var draws: {
         const rows = sensors.slice();
-        if (hasBattery && changeRate > 0)
+        if (hasBattery && discharging && changeRate > 0)
             rows.push({
                 kind: "system",
-                label: battery.model || "Battery",
+                label: "System total",
                 watts: changeRate
             });
         const packaged = rows.some(row => row.kind === "apu");
