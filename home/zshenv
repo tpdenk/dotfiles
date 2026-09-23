@@ -10,3 +10,7 @@ export PATH
 if [[ -r "$HOME/.cargo/env" ]]; then
 	. "$HOME/.cargo/env"
 fi
+
+if [[ -r "$HOME/.zshenv_local" ]]; then
+	. "$HOME/.zshenv_local"
+fi

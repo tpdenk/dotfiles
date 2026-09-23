@@ -454,6 +454,16 @@ make_user_dirs() {
 	done < "$dirs"
 }
 
+create_zsh_local() {
+	local name dest
+	for name in zshrc zshenv zprofile; do
+		dest="$HOME/.${name}_local"
+		[[ -e "$dest" ]] && continue
+		: >"$dest"
+		echo "  created ${dest#"$HOME"/}"
+	done
+}
+
 link_dotfiles() {
 	local src name dest_name backup
 	backup="$HOME/.config-backup-$(date +%Y%m%d%H%M%S)"
@@ -485,6 +495,7 @@ link_dotfiles() {
 	done
 
 	make_user_dirs
+	create_zsh_local
 }
 
 enable_services() {

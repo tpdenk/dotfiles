@@ -34,3 +34,5 @@ alias ls='eza'
 
 # Prompt
 [[ -r "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
+
+[[ -r "$HOME/.zshrc_local" ]] && source "$HOME/.zshrc_local"

@@ -4,6 +4,10 @@
 # that stale shell instead of the login shell.
 export SHELL="${commands[zsh]:-/usr/bin/zsh}"
 
+if [[ -r "$HOME/.zprofile_local" ]]; then
+	. "$HOME/.zprofile_local"
+fi
+
 # Start the Wayland session on tty1 login. uwsm replaces the login shell,
 # so logging out of Hyprland returns to the getty prompt.
 if uwsm check may-start; then
