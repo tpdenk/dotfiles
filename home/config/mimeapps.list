@@ -8,3 +8,7 @@ video/mp4=brave-browser.desktop
 video/x-matroska=brave-browser.desktop
 video/webm=brave-browser.desktop
 x-scheme-handler/webcal=brave-browser.desktop
+x-scheme-handler/slack=slack.desktop
+
+[Added Associations]
+x-scheme-handler/slack=slack.desktop;
