@@ -18,6 +18,7 @@
 #   ./bootstrap.sh gh         just the gh device-flow login
 #   ./bootstrap.sh editor     just the editor installation
 #   ./bootstrap.sh omp        just install omp (oh-my-pi)
+#   ./bootstrap.sh update     just git pull this repo
 
 set -euo pipefail
 
@@ -323,6 +324,16 @@ setup_ssh() {
 	fi
 }
 
+update_repo() {
+	have git || { warn "git not installed, skipping repo update"; return; }
+	git -C "$DOTFILES" rev-parse --git-dir >/dev/null 2>&1 \
+		|| { warn "$DOTFILES is not a git repo, skipping repo update"; return; }
+
+	log "updating dotfiles repo"
+	git -C "$DOTFILES" pull --ff-only \
+		|| warn "git pull failed, continuing with the checkout as it is"
+}
+
 use_ssh_remote() {
 	have git || { warn "git not installed, skipping remote rewrite"; return; }
 	git -C "$DOTFILES" rev-parse --git-dir >/dev/null 2>&1 \
@@ -575,7 +586,9 @@ case "${1:-all}" in
 	gh)       setup_gh ;;
 	editor)   install_editor ;;
 	omp)      install_omp ;;
+	update)   update_repo ;;
 	all)
+		update_repo
 		install_pkgs
 		link_dotfiles
 		enable_services
