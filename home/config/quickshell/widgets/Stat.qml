@@ -7,6 +7,8 @@ Item {
 
     property string label
     property string value
+    // room kept free right of the value, for a trailing glyph
+    property real rightInset: 0
 
     implicitHeight: valueText.implicitHeight
 
@@ -25,6 +27,7 @@ Item {
             left: labelText.right
             leftMargin: 12
             right: parent.right
+            rightMargin: root.rightInset
         }
         text: root.value
         horizontalAlignment: Text.AlignRight

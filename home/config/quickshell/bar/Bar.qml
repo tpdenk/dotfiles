@@ -11,6 +11,7 @@ import qs.network
 import qs.power
 import qs.screenrecord
 import qs.screenshare
+import qs.tailscale
 import qs.updates
 import qs.widgets
 
@@ -86,6 +87,8 @@ Scope {
                     rightMargin: 8
                 }
                 spacing: 6
+
+                TailscaleIndicator {}
 
                 DockerIndicator {}
 

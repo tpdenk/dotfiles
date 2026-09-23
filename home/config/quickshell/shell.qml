@@ -11,6 +11,7 @@ import qs.power
 import qs.screenrecord
 import qs.screenshare
 import qs.screenshot
+import qs.tailscale
 import qs.updates
 
 ShellRoot {
@@ -25,6 +26,7 @@ ShellRoot {
     ScreenRecord {}
     ScreenShare {}
     Screenshot {}
+    Tailscale {}
     Updates {}
 
     IpcHandler {
