@@ -15,6 +15,16 @@ hl.bind("SUPER + CTRL + U", hl.dsp.exec_cmd("qs ipc call panels toggle updates")
 hl.bind("SUPER + CTRL + D", hl.dsp.exec_cmd("qs ipc call panels toggle docker"))
 hl.bind("SUPER + CTRL + L", hl.dsp.exec_cmd("loginctl lock-session"))
 
+-- Recover a black-but-connected screen (dGPU outputs miss link training after replug):
+-- dpms off/on forces a real CRTC disable + full modeset on every output.
+hl.bind("SUPER + CTRL + SHIFT + R", function()
+    hl.dispatch(hl.dsp.dpms({ action = "off" }))
+    hl.timer(function()
+        hl.dispatch(hl.dsp.dpms({ action = "on" }))
+    end, { timeout = 1000, type = "oneshot" })
+    return { ok = true }
+end, { locked = true })
+
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("qs ipc call audio volumeUp"), { locked = true, repeating = true })
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("qs ipc call audio volumeDown"), { locked = true, repeating = true })
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("qs ipc call audio toggleMute"), { locked = true })
