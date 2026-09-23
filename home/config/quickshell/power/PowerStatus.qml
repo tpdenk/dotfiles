@@ -66,20 +66,35 @@ Singleton {
 
     // An APU's PPT and a CPU driver's RAPL counter are one package measured
     // twice: AMD's package energy MSR covers the graphics block too. They
-    // never quite agree, so only the firmware-averaged PPT is kept.
+    // never quite agree, so only the firmware-averaged PPT is kept. When the
+    // SMU splits the package into parts, the parts replace it.
     //
     // Discharging, the battery's rate is everything the machine draws: a total,
     // not a device. Charging, it is what flows into the cells, which is no draw.
     readonly property var draws: {
-        const rows = sensors.slice();
-        if (hasBattery && discharging && changeRate > 0)
+        const split = sensors.some(row => row.kind === "cores");
+        const packaged = sensors.some(row => row.kind === "apu");
+        const rows = sensors.filter(row => !(split && row.kind === "apu") && !((split || packaged) && row.kind === "cpu"));
+        if (hasBattery && discharging && changeRate > 0) {
+            // a charger feeds the machine rather than drawing from it
+            const measured = rows.reduce((sum, row) => row.kind === "charger" || row.kind === "system" ? sum : sum + row.watts, 0);
             rows.push({
                 kind: "system",
                 label: "System total",
                 watts: changeRate
             });
-        const packaged = rows.some(row => row.kind === "apu");
-        return rows.filter(row => !(packaged && row.kind === "cpu")).sort((a, b) => b.watts - a.watts);
+            rows.sort((a, b) => b.watts - a.watts);
+            // the sources average over different windows, so the parts can
+            // briefly outrun the total
+            if (changeRate > measured)
+                rows.push({
+                    kind: "unmeasured",
+                    label: "Other",
+                    watts: changeRate - measured
+                });
+            return rows;
+        }
+        return rows.sort((a, b) => b.watts - a.watts);
     }
 
     readonly property real peakWatts: Math.max(1, ...draws.map(row => row.watts))
@@ -116,6 +131,15 @@ Singleton {
         case "cpu":
         case "apu":
             return processorName(name) || "CPU";
+        case "cores":
+            return "CPU cores";
+        case "igpu":
+            // the CPU's model string names its graphics: "… w/ Radeon 890M"
+            return cleanName(name.split(/\s+w\/\s+/)[1] ?? "") || "Integrated GPU";
+        case "npu":
+            return "NPU";
+        case "soc":
+            return "SoC fabric & I/O";
         case "gpu":
             return deviceName(name) || "GPU";
         case "disk":

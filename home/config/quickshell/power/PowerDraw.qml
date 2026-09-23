@@ -9,6 +9,7 @@ import qs.widgets
 SelectList {
     title: "Draw"
     placeholder: "No readable power sensors"
+    maxHeight: 8 * 22
 
     model: ScriptModel {
         values: PowerStatus.draws
@@ -17,6 +18,7 @@ SelectList {
     delegate: Item {
         id: row
         required property var modelData
+        readonly property bool unmeasured: modelData.kind === "unmeasured"
 
         width: ListView.view.width
         implicitHeight: 22
@@ -29,7 +31,7 @@ SelectList {
             width: parent.width * Math.min(1, row.modelData.watts / PowerStatus.peakWatts)
             height: parent.height - 2
             radius: Theme.roundingSmall
-            color: Qt.alpha(Theme.accent, 0.16)
+            color: Qt.alpha(row.unmeasured ? Theme.muted : Theme.accent, 0.16)
         }
 
         Text {
@@ -44,7 +46,7 @@ SelectList {
             elide: Text.ElideRight
             font.family: Theme.fontFamily
             font.pointSize: Theme.fontSize
-            color: Theme.text
+            color: row.unmeasured ? Theme.muted : Theme.text
         }
 
         Text {
@@ -57,7 +59,7 @@ SelectList {
             text: `${row.modelData.watts.toFixed(1)} W`
             font.family: Theme.fontFamily
             font.pointSize: Theme.fontSize
-            color: Theme.brightText
+            color: row.unmeasured ? Theme.muted : Theme.brightText
         }
     }
 }

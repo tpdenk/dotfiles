@@ -5,7 +5,8 @@
 #   <microwatts>\t<chip>\t<sensor label>\t<kind>\t<device name>\t<device node>
 #
 # kind is one of cpu, apu (a GPU sharing the CPU's package, so its figure
-# contains the CPU's), gpu, disk, wifi, net, charger, system or other. Device
+# contains the CPU's), cores, igpu, npu and soc (an APU package split into its
+# parts), gpu, disk, wifi, net, charger, system or other. Device
 # name and node are best effort; empty means the display side falls back to
 # the driver name.
 #
@@ -94,6 +95,28 @@ disk_model() {
 	done
 }
 
+apu_breakdown() {
+	metrics=$1/device/gpu_metrics
+	[ -r "$metrics" ] || return
+	od -An -tu2 -v -N136 "$metrics" 2>/dev/null | awk \
+		-v chip="$2" -v name="$3" '
+		{ for (i = 1; i <= NF; i++) w[n++] = $i }
+		function u32(at) { return w[at / 2] + w[at / 2 + 1] * 65536 }
+		function row(mw, label, kind) {
+			printf "%d\t%s\t%s\t%s\t%s\t\n", mw * 1000, chip, label, kind, name
+		}
+		END {
+			# header: u16 size, u8 format, u8 content; 3 | 0 << 8 is v3.0
+			if (n < 68 || w[1] != 3) exit
+			socket = u32(112); npu = w[58]; gfx = u32(124); cores = u32(132)
+			rest = socket - cores - gfx - npu
+			row(cores, "cores", "cores")
+			row(gfx, "gfx", "igpu")
+			row(npu, "ipu", "npu")
+			row(rest > 0 ? rest : 0, "soc", "soc")
+		}'
+}
+
 for hwmon in "$SYSFS"/class/hwmon/hwmon*; do
 	chip=$(cat "$hwmon/name" 2>/dev/null) || continue
 	kind=$(classify "$chip" "$hwmon")
@@ -103,6 +126,7 @@ for hwmon in "$SYSFS"/class/hwmon/hwmon*; do
 	case $kind in
 	cpu | apu)
 		name=$(cpu_model)
+		[ "$kind" = apu ] && apu_breakdown "$hwmon" "$chip" "$name"
 		;;
 	gpu | wifi | net)
 		slot=$(pci_slot "$hwmon") && name=$(pci_name "$slot")
@@ -168,4 +192,20 @@ for supply in "$SYSFS"/class/power_supply/*; do
 
 	node=${supply##*/}
 	printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$microwatts" "$node" "$type" "$kind" "" "$node"
+done
+
+# NVIDIA has no hwmon power sensor, only nvidia-smi, which wakes a
+# runtime-suspended GPU; so only query GPUs already awake.
+command -v nvidia-smi >/dev/null 2>&1 || exit 0
+for gpu in "$SYSFS"/bus/pci/drivers/nvidia/*:*:*.[0-9]; do
+	[ -e "$gpu" ] || continue
+	[ "$(cat "$gpu/power/runtime_status" 2>/dev/null)" = active ] || continue
+
+	slot=${gpu##*/}
+	watts=$(nvidia-smi -i "$slot" --query-gpu=power.draw --format=csv,noheader,nounits 2>/dev/null) || continue
+	# "[N/A]" on boards whose firmware hides the reading
+	microwatts=$(printf '%s' "$watts" | awk '$1 ~ /^[0-9.]+$/ { printf "%d", $1 * 1e6 }')
+	[ -n "$microwatts" ] || continue
+
+	printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$microwatts" nvidia power gpu "$(pci_name "$slot")" "$slot"
 done
