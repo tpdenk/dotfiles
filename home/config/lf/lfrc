@@ -70,7 +70,7 @@ cmd unar ${{
 
 cmd copypath ${{
 	wl-copy "$f"
-	notify-send "$f" "copied to clipboard"
+	notify-send -e "$f" "copied to clipboard"
 }}
 
 ##############

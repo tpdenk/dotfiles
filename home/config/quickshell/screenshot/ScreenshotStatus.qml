@@ -18,6 +18,20 @@ Singleton {
     // from the moment the screen freezes until the file is on disk
     readonly property bool active: freeze.running || picker.running || capture.running
 
+    property var last: null
+    property var pending: null
+
+    function dismiss(): void {
+        root.last = null;
+    }
+
+    function discard(): void {
+        if (!root.last)
+            return;
+        Quickshell.execDetached(["rm", "-f", "--", root.last.path]);
+        root.last = null;
+    }
+
     function take(): void {
         if (root.active)
             return;
@@ -27,7 +41,7 @@ Singleton {
     }
 
     function notify(summary: string, body: string, icon: string): void {
-        Quickshell.execDetached(["notify-send", "-a", "screenshot", "-e", "-i", icon, summary, body]);
+        Quickshell.execDetached(["notify-send", "-a", "screenshot", "-i", icon, summary, body]);
     }
 
     // hyprpicker needs the moment it takes to put the frozen screen up before
@@ -61,6 +75,14 @@ Singleton {
                 return;
             }
 
+            root.pending = {
+                kind: kind,
+                output: output,
+                x: x,
+                y: y,
+                w: w,
+                h: h
+            };
             const path = `${root.directory}/${Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH-mm-ss")}.png`;
             // a whole monitor goes through -o: grim writes its exact pixels,
             // with no rounding of the layout box back into them
@@ -83,14 +105,18 @@ Singleton {
 
         onExited: code => {
             freeze.running = false;
+            root.last = null;
 
             if (code === 0) {
                 Quickshell.execDetached(["sh", "-c", 'exec wl-copy --type image/png <"$1"', "screenshot", capture.path]);
-                root.notify("Screenshot saved", capture.path.replace(Quickshell.env("HOME"), "~"), capture.path);
+                root.last = Object.assign({
+                    path: capture.path
+                }, root.pending);
             } else
                 root.notify("Screenshot failed", errors.text.trim().split("\n").pop() || `grim exited with ${code}`, "image-missing");
 
             capture.path = "";
+            root.pending = null;
         }
     }
 }

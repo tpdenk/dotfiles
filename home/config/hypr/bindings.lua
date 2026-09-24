@@ -13,7 +13,10 @@ hl.bind("SUPER + CTRL + T", hl.dsp.exec_cmd("xdg-terminal-exec btop"))
 hl.bind("SUPER + CTRL + P", hl.dsp.exec_cmd("qs ipc call panels toggle power"))
 hl.bind("SUPER + CTRL + U", hl.dsp.exec_cmd("qs ipc call panels toggle updates"))
 hl.bind("SUPER + CTRL + D", hl.dsp.exec_cmd("qs ipc call panels toggle docker"))
+hl.bind("SUPER + CTRL + N", hl.dsp.exec_cmd("qs ipc call panels toggle notifications"))
+hl.bind("SUPER + CTRL + SHIFT + N", hl.dsp.exec_cmd("qs ipc call notifications toggleDnd"))
 hl.bind("SUPER + CTRL + L", hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("qs ipc call session toggle"))
 
 -- Recover a black-but-connected screen (dGPU outputs miss link training after replug):
 -- dpms off/on forces a real CRTC disable + full modeset on every output.

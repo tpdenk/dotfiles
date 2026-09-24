@@ -14,6 +14,7 @@ Singleton {
 
     readonly property color background: color("background")
     readonly property color base: color("base")
+    readonly property color highlight: color("alternate_base")
     readonly property color text: color("text")
     readonly property color brightText: color("bright_text")
     readonly property color muted: color("muted")
@@ -21,6 +22,8 @@ Singleton {
     readonly property color accentSecondary: color("accent_secondary")
     readonly property color warning: color("warning")
     readonly property color alert: color("alert")
+    readonly property color success: color("success")
+    readonly property color attention: color("attention")
 
     readonly property int roundingLarge: int("rounding_large")
     readonly property int roundingSmall: int("rounding_small")
@@ -32,6 +35,10 @@ Singleton {
     readonly property int smallSize: int("small_font_size")
     readonly property int h1Size: int("h1_size")
     readonly property int h2Size: int("h2_size")
+    readonly property int h3Size: int("h3_size")
+
+    readonly property int durationIn: 120
+    readonly property int durationOut: 80
 
     FileView {
         id: file

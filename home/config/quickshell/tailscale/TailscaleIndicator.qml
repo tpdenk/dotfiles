@@ -7,7 +7,9 @@ import qs.widgets
 Pill {
     id: root
 
-    visible: TailscaleStatus.available
+    readonly property bool shown: TailscaleStatus.available && (TailscaleStatus.running || Panels.statusExpanded || highlight)
+    visible: shown
+    bare: true
 
     readonly property color tint: TailscaleStatus.running ? Theme.accent : Theme.muted
 

@@ -11,6 +11,7 @@ import qs.power
 import qs.screenrecord
 import qs.screenshare
 import qs.screenshot
+import qs.session
 import qs.tailscale
 import qs.updates
 
@@ -26,6 +27,7 @@ ShellRoot {
     ScreenRecord {}
     ScreenShare {}
     Screenshot {}
+    SessionMenu {}
     Tailscale {}
     Updates {}
 

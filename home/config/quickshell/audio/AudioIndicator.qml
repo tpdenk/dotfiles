@@ -4,6 +4,7 @@ import qs.widgets
 // Bar pill for the default output: its icon and volume. Click toggles the
 // details panel.
 Pill {
+    bare: true
     glyph: AudioStatus.icon
     // muted still shows the level it would return to
     label: AudioStatus.percent(AudioStatus.sink)

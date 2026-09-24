@@ -86,8 +86,8 @@ Singleton {
         recorder.running = true;
     }
 
-    function notify(summary: string, body: string): void {
-        Quickshell.execDetached(["notify-send", "-a", "screenrecord", "-e", "-i", "media-record", summary, body]);
+    function notify(summary: string, body: string, transient: bool): void {
+        Quickshell.execDetached(["notify-send", "-a", "screenrecord"].concat(transient ? ["-e"] : [], ["-i", "media-record", summary, body]));
     }
 
     Process {
@@ -106,29 +106,34 @@ Singleton {
                 return;
 
             const [kind, output, x, y, w, h] = pick.text.trim().split(" ");
-            if (!kind || !output)
-                return;
-
-            // a window records as the region it occupies: gpu-screen-recorder
-            // works out which monitor that lands on
-            root.capture = kind === "screen" ? ["-w", output] : ["-w", "region", "-region", `${w}x${h}+${x}+${y}`];
-            // capping at 60 keeps a 120 Hz panel from doubling the file size
-            // for frames nothing will play back
-            const host = Hyprland.monitors.values.find(candidate => candidate.name === output);
-            const ipc = host?.lastIpcObject ?? null;
-            root.fps = Math.min(60, Math.round(ipc?.refreshRate ?? 60));
-            // the capture is a fixed box even when a window was picked, so the
-            // outline is the box and does not follow the window
-            root.area = {
-                output: output,
-                x: Number(x) - (ipc?.x ?? 0),
-                y: Number(y) - (ipc?.y ?? 0),
-                w: Number(w),
-                h: Number(h)
-            };
-
-            root.countdown = root.countdownFrom;
+            root.arm(kind, output, x, y, w, h);
         }
+    }
+
+    // share-picker's pick fields, in layout coordinates
+    function arm(kind: string, output: string, x: string, y: string, w: string, h: string): void {
+        if (root.active || !kind || !output)
+            return;
+
+        // a window records as the region it occupies: gpu-screen-recorder
+        // works out which monitor that lands on
+        root.capture = kind === "screen" ? ["-w", output] : ["-w", "region", "-region", `${w}x${h}+${x}+${y}`];
+        // capping at 60 keeps a 120 Hz panel from doubling the file size
+        // for frames nothing will play back
+        const host = Hyprland.monitors.values.find(candidate => candidate.name === output);
+        const ipc = host?.lastIpcObject ?? null;
+        root.fps = Math.min(60, Math.round(ipc?.refreshRate ?? 60));
+        // the capture is a fixed box even when a window was picked, so the
+        // outline is the box and does not follow the window
+        root.area = {
+            output: output,
+            x: Number(x) - (ipc?.x ?? 0),
+            y: Number(y) - (ipc?.y ?? 0),
+            w: Number(w),
+            h: Number(h)
+        };
+
+        root.countdown = root.countdownFrom;
     }
 
     Process {
@@ -142,9 +147,9 @@ Singleton {
 
         onExited: code => {
             if (code === 0)
-                root.notify("Screen recording saved", root.path.replace(Quickshell.env("HOME"), "~"));
+                root.notify("Screen recording saved", root.path.replace(Quickshell.env("HOME"), "~"), true);
             else
-                root.notify("Screen recording failed", errors.text.trim().split("\n").pop() || `gpu-screen-recorder exited with ${code}`);
+                root.notify("Screen recording failed", errors.text.trim().split("\n").pop() || `gpu-screen-recorder exited with ${code}`, false);
             root.path = "";
             root.capture = [];
             root.area = null;

@@ -18,9 +18,7 @@ Rectangle {
     implicitWidth: row.implicitWidth + 2 * inset
     implicitHeight: row.implicitHeight + 2 * inset
     radius: Theme.roundingSmall
-    color: Qt.alpha(Theme.muted, 0.25)
-    border.width: Theme.borderSize
-    border.color: root.enabled ? Theme.accent : Theme.muted
+    color: Theme.highlight
 
     Row {
         id: row
@@ -40,7 +38,7 @@ Rectangle {
                 implicitWidth: label.implicitWidth + 14
                 implicitHeight: label.implicitHeight + 4
                 radius: Theme.roundingSmall
-                color: segment.active ? Theme.accent : hover.containsMouse ? Qt.alpha(Theme.accent, 0.2) : "transparent"
+                color: segment.active ? (root.enabled ? Theme.accent : Theme.muted) : hover.containsMouse ? Theme.base : "transparent"
 
                 Text {
                     id: label

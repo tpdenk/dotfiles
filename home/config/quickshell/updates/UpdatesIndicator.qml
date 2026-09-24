@@ -8,12 +8,14 @@ Pill {
     readonly property bool packagesShown: UpdatesStatus.count > 0 || UpdatesStatus.failed
     readonly property bool firmwareShown: FirmwareStatus.devices.length > 0 || FirmwareStatus.failed
 
-    visible: packagesShown || firmwareShown
+    readonly property bool shown: packagesShown || firmwareShown
+    visible: shown
+    bare: true
 
     glyph: packagesShown ? UpdatesStatus.icon : ""
     label: packagesShown ? UpdatesStatus.label : ""
     highlight: Panels.open === "updates"
-    glyphColor: UpdatesStatus.failed ? Theme.alert : Theme.accent
+    glyphColor: UpdatesStatus.failed ? Theme.alert : Theme.attention
     labelColor: Theme.brightText
 
     onClicked: Panels.toggle("updates")

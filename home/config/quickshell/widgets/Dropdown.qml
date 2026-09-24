@@ -16,7 +16,21 @@ PanelWindow { // qmllint disable uncreatable-type
     property bool grabKeyboard: false
     property bool centered: false
 
-    visible: Panels.open === root.name
+    readonly property bool wanted: Panels.open === root.name
+    property bool shown: false
+
+    onWantedChanged: {
+        if (wanted) {
+            shown = true;
+            outAnim.stop();
+            inAnim.restart();
+        } else if (shown) {
+            inAnim.stop();
+            outAnim.restart();
+        }
+    }
+
+    visible: shown
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: root.name
     WlrLayershell.keyboardFocus: root.grabKeyboard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -39,7 +53,41 @@ PanelWindow { // qmllint disable uncreatable-type
 
     Loader {
         id: loader
-        anchors.fill: parent
+        width: parent.width
         sourceComponent: root.card
+        opacity: 0
+        y: 0
+    }
+
+    ParallelAnimation {
+        id: inAnim
+        NumberAnimation {
+            target: loader
+            property: "opacity"
+            from: 0
+            to: 1
+            duration: Theme.durationIn
+        }
+        NumberAnimation {
+            target: loader
+            property: "y"
+            from: -4
+            to: 0
+            duration: Theme.durationIn
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    SequentialAnimation {
+        id: outAnim
+        NumberAnimation {
+            target: loader
+            property: "opacity"
+            to: 0
+            duration: Theme.durationOut
+        }
+        ScriptAction {
+            script: root.shown = false
+        }
     }
 }

@@ -5,5 +5,5 @@ import qs
 Rectangle {
     width: parent.width
     height: 1
-    color: Qt.alpha(Theme.muted, 0.5)
+    color: Theme.highlight
 }

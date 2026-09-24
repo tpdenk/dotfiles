@@ -9,6 +9,7 @@ import qs.bluetooth
 import qs.docker
 import qs.mouse
 import qs.network
+import qs.notifications
 import qs.power
 import qs.screenrecord
 import qs.screenshare
@@ -22,6 +23,8 @@ Scope {
         id: clock
         precision: SystemClock.Seconds
     }
+
+    Calendar {}
 
     Variants {
         model: Quickshell.screens
@@ -48,37 +51,32 @@ Scope {
                     verticalCenter: parent.verticalCenter
                     leftMargin: 8
                 }
+                maxWidth: clockPill.x - 16
                 monitor: Hyprland.monitorFor(panel.screen)
             }
 
             Pill {
                 id: clockPill
                 anchors.centerIn: parent
-                label: Qt.formatDateTime(clock.date, "yyyy-MM-dd dddd HH:mm:ss")
-                labelColor: Theme.brightText
-            }
+                highlight: Panels.open === "calendar"
+                onClicked: Panels.toggle("calendar")
 
-            UpdatesIndicator {
-                anchors {
-                    right: clockPill.left
-                    rightMargin: 6
-                    verticalCenter: parent.verticalCenter
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Qt.formatDateTime(clock.date, "ddd dd MMM")
+                    font.family: Theme.fontFamily
+                    font.pointSize: Theme.smallSize
+                    color: Theme.text
                 }
-            }
 
-            // trail the clock instead of joining the row of dropdowns: they
-            // come and go, and must not shuffle the indicators around
-            Row {
-                anchors {
-                    left: clockPill.right
-                    leftMargin: 6
-                    verticalCenter: parent.verticalCenter
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Qt.formatDateTime(clock.date, "HH:mm:ss")
+                    font.family: Theme.fontFamily
+                    font.pointSize: Theme.smallSize
+                    font.bold: true
+                    color: Theme.brightText
                 }
-                spacing: 6
-
-                ScreenShareIndicator {}
-
-                ScreenRecordIndicator {}
             }
 
             Row {
@@ -89,19 +87,49 @@ Scope {
                 }
                 spacing: 6
 
-                TailscaleIndicator {}
+                Capsule {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: updates.shown || share.shown || record.shown
 
-                DockerIndicator {}
+                    UpdatesIndicator {
+                        id: updates
+                    }
 
-                AudioIndicator {}
+                    ScreenShareIndicator {
+                        id: share
+                    }
 
-                BluetoothIndicator {}
+                    ScreenRecordIndicator {
+                        id: record
+                    }
+                }
 
-                NetworkIndicator {}
+                Capsule {
+                    anchors.verticalCenter: parent.verticalCenter
 
-                MouseIndicator {}
+                    Pill {
+                        bare: true
+                        glyph: String.fromCodePoint(Panels.statusExpanded ? 0xf0142 : 0xf0141)
+                        glyphColor: hovered || Panels.statusExpanded ? Theme.text : Theme.muted
+                        onClicked: Panels.statusExpanded = !Panels.statusExpanded
+                    }
 
-                PowerIndicator {}
+                    TailscaleIndicator {}
+
+                    DockerIndicator {}
+
+                    MouseIndicator {}
+
+                    BluetoothIndicator {}
+
+                    NetworkIndicator {}
+
+                    AudioIndicator {}
+
+                    PowerIndicator {}
+
+                    NotificationIndicator {}
+                }
             }
         }
     }

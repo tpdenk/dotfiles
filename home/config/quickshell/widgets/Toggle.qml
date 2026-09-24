@@ -9,12 +9,16 @@ Rectangle {
 
     signal toggled(on: bool)
 
-    implicitWidth: 38
-    implicitHeight: 20
+    implicitWidth: 34
+    implicitHeight: 18
     radius: height / 2
-    color: Qt.alpha(checked ? Theme.accent : Theme.muted, 0.25)
-    border.width: Theme.borderSize
-    border.color: checked ? Theme.accent : Theme.muted
+    color: checked ? Qt.tint(Theme.highlight, Qt.alpha(Theme.accent, 0.45)) : Theme.highlight
+
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.durationIn
+        }
+    }
 
     Rectangle {
         id: knob
@@ -25,11 +29,11 @@ Rectangle {
         width: height
         height: root.height - 2 * inset
         radius: height / 2
-        color: root.checked ? Theme.accent : Theme.muted
+        color: root.checked ? Theme.accent : root.enabled ? Theme.text : Theme.muted
 
         Behavior on x {
             NumberAnimation {
-                duration: 120
+                duration: Theme.durationIn
                 easing.type: Easing.OutCubic
             }
         }
@@ -37,6 +41,7 @@ Rectangle {
 
     MouseArea {
         anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
         onClicked: root.toggled(!root.checked)
     }
 }

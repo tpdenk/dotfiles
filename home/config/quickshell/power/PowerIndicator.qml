@@ -7,8 +7,9 @@ import qs.widgets
 // profile alone. Click toggles the dropdown.
 Pill {
     id: root
+    bare: true
 
-    readonly property color tint: PowerStatus.low ? Theme.accentSecondary : PowerStatus.discharging ? Theme.accent : Theme.muted
+    readonly property color tint: PowerStatus.low ? Theme.attention : PowerStatus.discharging ? Theme.accent : Theme.muted
 
     // the plug stands in when there is neither a battery nor a profile daemon,
     // so the entry never collapses to nothing

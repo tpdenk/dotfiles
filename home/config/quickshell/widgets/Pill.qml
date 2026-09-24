@@ -14,6 +14,9 @@ Rectangle {
     // elide the label past this width; 0 leaves it unbounded
     property real labelLimit: 0
     property bool highlight: false
+    property bool bare: false
+    property bool interactive: true
+    readonly property bool hovered: mouse.containsMouse
 
     default property alias content: row.data
 
@@ -24,12 +27,15 @@ Rectangle {
     radius: height / 2
     // tinted rather than alpha blended: the bar itself paints nothing, so a
     // translucent chip would show the raw wallpaper through it
-    color: highlight ? Qt.tint(Theme.base, Qt.alpha(Theme.accent, 0.3)) : Theme.base
+    color: highlight ? Qt.tint(Theme.base, Qt.alpha(Theme.accent, 0.3)) : interactive && hovered ? Theme.highlight : bare ? "transparent" : Theme.base
 
     // first child, so anything clickable inside `content` sits above it and
     // gets the press; a chip without one is clickable as a whole
     MouseArea {
+        id: mouse
         anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: root.interactive ? Qt.PointingHandCursor : Qt.ArrowCursor
         onClicked: root.clicked()
     }
 

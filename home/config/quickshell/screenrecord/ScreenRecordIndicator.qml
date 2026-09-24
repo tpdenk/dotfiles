@@ -14,13 +14,15 @@ Pill {
     // the countdown's glyph and text, dark while the flash is at its brightest
     readonly property color countText: Qt.tint(Theme.brightText, Qt.alpha(Theme.background, root.pulse))
 
-    visible: ScreenRecordStatus.active
+    readonly property bool shown: ScreenRecordStatus.active
+    visible: shown
+    bare: true
 
     glyph: ScreenRecordStatus.icon
     label: ScreenRecordStatus.label
     // the countdown owns the whole chip; the record dot alone blinks once the
     // capture is running, as that is what has to stay legible for an hour
-    color: ScreenRecordStatus.counting ? Qt.tint(Theme.base, Qt.alpha(Theme.warning, root.pulse)) : Theme.base
+    color: ScreenRecordStatus.counting ? Qt.tint(Theme.base, Qt.alpha(Theme.warning, root.pulse)) : hovered ? Theme.highlight : "transparent"
     glyphColor: ScreenRecordStatus.counting ? root.countText : Qt.alpha(Theme.alert, root.pulse)
     labelColor: ScreenRecordStatus.counting ? root.countText : Theme.brightText
 

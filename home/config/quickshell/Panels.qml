@@ -7,6 +7,7 @@ Singleton {
     id: root
 
     property string open: ""
+    property bool statusExpanded: false
 
     function toggle(name: string): void {
         root.open = root.open === name ? "" : name;

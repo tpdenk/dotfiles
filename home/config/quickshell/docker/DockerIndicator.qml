@@ -4,7 +4,9 @@ import qs.widgets
 // Bar pill for the docker engine: how many containers are up. Click toggles
 // the container list.
 Pill {
-    visible: DockerStatus.available
+    readonly property bool shown: DockerStatus.available && (DockerStatus.count > 0 || Panels.statusExpanded || highlight)
+    visible: shown
+    bare: true
 
     glyph: DockerStatus.icon
     label: DockerStatus.label

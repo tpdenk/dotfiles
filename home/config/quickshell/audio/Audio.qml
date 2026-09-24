@@ -9,6 +9,8 @@ Scope {
         card: AudioPanel {}
     }
 
+    VolumeOsd {}
+
     // the media keys act on the default output, the same device the bar
     // indicator and the panel's first slider show
     IpcHandler {

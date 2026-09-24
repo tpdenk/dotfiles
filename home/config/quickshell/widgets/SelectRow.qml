@@ -15,7 +15,7 @@ Rectangle {
 
     height: 24
     radius: Theme.roundingSmall
-    color: hover.containsMouse ? Qt.alpha(Theme.accent, 0.15) : "transparent"
+    color: hover.containsMouse ? Theme.highlight : "transparent"
 
     Text {
         anchors {
