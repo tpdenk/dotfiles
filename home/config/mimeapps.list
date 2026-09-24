@@ -11,4 +11,3 @@ x-scheme-handler/webcal=brave-browser.desktop
 x-scheme-handler/slack=slack.desktop
 
 [Added Associations]
-x-scheme-handler/slack=slack.desktop;
