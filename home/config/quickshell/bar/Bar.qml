@@ -7,6 +7,7 @@ import qs
 import qs.audio
 import qs.bluetooth
 import qs.docker
+import qs.mouse
 import qs.network
 import qs.power
 import qs.screenrecord
@@ -97,6 +98,8 @@ Scope {
                 BluetoothIndicator {}
 
                 NetworkIndicator {}
+
+                MouseIndicator {}
 
                 PowerIndicator {}
             }

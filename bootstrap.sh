@@ -17,6 +17,7 @@
 #   ./bootstrap.sh ssh        just the ssh key setup (keygen, gh login, upload)
 #   ./bootstrap.sh gh         just the gh device-flow login
 #   ./bootstrap.sh editor     just the editor installation
+#   ./bootstrap.sh sabre      just the sabre_v2_pro mouse battery cli
 #   ./bootstrap.sh omp        just install omp (oh-my-pi)
 #   ./bootstrap.sh update     just git pull this repo
 
@@ -162,6 +163,22 @@ install_editor() {
 		log "editor already up to date, skipping cargo install"
 	fi
 	popd >/dev/null
+}
+
+install_sabre() {
+	local rules=/etc/udev/rules.d/70-sabre-v2-pro.rules
+	local rule='KERNEL=="hidraw*", ATTRS{idVendor}=="1b1c", ATTRS{idProduct}=="2b28|2b2a", TAG+="uaccess"'
+	log "sabre_v2_pro"
+	have cargo || die "cargo not on PATH, run ./bootstrap.sh rustup first"
+	# cargo skips the build when the installed binary is already at the tip
+	cargo install --git https://github.com/tpdenk/sabre_v2_pro
+
+	if [[ "$(cat "$rules" 2>/dev/null)" != "$rule" ]]; then
+		echo "$rule" | sudo tee "$rules" >/dev/null
+		sudo udevadm control --reload
+		sudo udevadm trigger --subsystem-match=hidraw
+		echo "  installed $rules"
+	fi
 }
 
 install_omz() {
@@ -596,6 +613,7 @@ case "${1:-all}" in
 	ssh)      setup_ssh ;;
 	gh)       setup_gh ;;
 	editor)   install_editor ;;
+	sabre)    install_sabre ;;
 	omp)      install_omp ;;
 	update)   update_repo ;;
 	all)
@@ -612,6 +630,7 @@ case "${1:-all}" in
 		setup_ssh
 		use_ssh_remote
 		install_editor
+		install_sabre
 		install_omp
 		log "done. log out and back in on tty1, uwsm starts Hyprland" ;;
 	*)        sed -n '/^# bootstrap.sh:/,/^$/p' "$0"; exit 1 ;;
