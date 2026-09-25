@@ -34,6 +34,8 @@ Rectangle {
 
     Row {
         id: metaRow
+        // above `hover`, so a meta item with its own MouseArea takes the click
+        z: 1
         anchors {
             right: parent.right
             rightMargin: 6
