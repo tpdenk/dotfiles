@@ -236,6 +236,16 @@ Scope {
                     }
 
                     Action {
+                        glyph: String.fromCodePoint(0xf03eb)
+                        label: "edit"
+                        onClicked: {
+                            // satty reads strftime specifiers in the output name, so a literal % doubles
+                            Quickshell.execDetached(["satty", "--filename", root.shot.path, "--output-filename", root.shot.path.replace(/%/g, "%%"), "--copy-command", "wl-copy"]);
+                            ScreenshotStatus.dismiss();
+                        }
+                    }
+
+                    Action {
                         glyph: String.fromCodePoint(0xf024b)
                         label: "folder"
                         onClicked: {

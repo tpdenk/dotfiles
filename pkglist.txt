@@ -50,6 +50,7 @@ polkit-kde-agent
 power-profiles-daemon
 quickshell
 ripgrep
+satty
 sd
 slurp
 snapper
