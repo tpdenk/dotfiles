@@ -139,7 +139,10 @@ Singleton {
     readonly property string status: device ? ConnectionState.toString(device.state) : "No device"
     readonly property bool enabled: enabledOf(device)
     readonly property int quality: qualityOf(device)
-    readonly property string qualityLabel: ["Offline", "Poor", "Fair", "Good", "Excellent"][quality]
+    // until the first ping is in, the level is the signal alone, which would
+    // call any strong but lossy link excellent
+    readonly property bool qualityPending: polling && !pingMeasured
+    readonly property string qualityLabel: qualityPending ? "Measuring…" : ["Offline", "Poor", "Fair", "Good", "Excellent"][quality]
     readonly property string security: securityOf(network)
     readonly property string wifiMode: wifi && device ? WifiDeviceMode.toString(device.mode) : ""
 
@@ -248,11 +251,31 @@ Singleton {
 
     property real pingMs: -1
     property real packetLoss: -1
+    // a ping has reported, even if it could not reach anything
+    property bool pingMeasured: false
     property real rxRate: -1
     property real txRate: -1
     property string address: ""
     property string subnet: ""
     property var ipv6: []
+
+    // the AP the wifi interface is associated with right now. One SSID can be
+    // served by several APs (mesh, repeaters), so the BSSID is what tells them
+    // apart; roaming to another one restarts the association clock.
+    property string bssid: ""
+    // wall clock ms, as reported by `iw`
+    property real associatedAt: -1
+    // ticks with the throughput sampler so the association age stays live
+    property real now: Date.now()
+    readonly property real associatedFor: associatedAt < 0 ? -1 : Math.max(0, (now - associatedAt) / 1000)
+
+    // the manufacturer registered for the BSSID's OUI. A locally administered
+    // BSSID (one radio serving several SSIDs) has none, so it stays empty.
+    property var vendors: ({})
+    readonly property string apOui: bssid.replace(/:/g, "").slice(0, 6).toUpperCase()
+    readonly property string apVendor: vendors[apOui] ?? ""
+
+    onApOuiChanged: lookupVendor()
 
     // default routes by interface, and which one the kernel actually picks:
     // interfaces on the same prefix are separated by metric, not by address
@@ -276,11 +299,14 @@ Singleton {
         counters = null;
         pingMs = -1;
         packetLoss = -1;
+        pingMeasured = false;
         rxRate = -1;
         txRate = -1;
         address = "";
         subnet = "";
         ipv6 = [];
+        bssid = "";
+        associatedAt = -1;
         refreshDelay.restart();
     }
 
@@ -307,6 +333,8 @@ Singleton {
             addressProc.running = true;
         if (!routeProc.running)
             routeProc.running = true;
+        if (wifi && !stationProc.running)
+            stationProc.running = true;
     }
 
     function formatRate(rate: real): string {
@@ -319,6 +347,18 @@ Singleton {
             ++i;
         }
         return `${i === 0 ? Math.round(rate) : rate.toFixed(1)} ${units[i]}/s`;
+    }
+
+    function formatDuration(seconds: real): string {
+        const total = Math.floor(seconds);
+        const days = Math.floor(total / 86400);
+        const hours = Math.floor(total % 86400 / 3600);
+        const minutes = Math.floor(total % 3600 / 60);
+        if (days > 0)
+            return `${days}d ${hours}h`;
+        if (hours > 0)
+            return `${hours}h ${minutes}m`;
+        return minutes > 0 ? `${minutes}m ${total % 60}s` : `${total}s`;
     }
 
     // [rx bytes, tx bytes, ms] of the previous /proc/net/dev read
@@ -355,6 +395,7 @@ Singleton {
         packetLoss = loss ? parseFloat(loss[1]) : -1;
         const rtt = text.match(/^rtt \S+ = [\d.]+\/([\d.]+)\//m);
         pingMs = rtt ? parseFloat(rtt[1]) : -1;
+        pingMeasured = true;
     }
 
     function parseAddress(text: string): void {
@@ -377,6 +418,24 @@ Singleton {
         const mask = prefix === 0 ? 0 : 0xffffffff << 32 - prefix >>> 0;
         const network = (value & mask) >>> 0;
         return `${network >>> 24}.${network >>> 16 & 255}.${network >>> 8 & 255}.${network & 255}/${prefix}`;
+    }
+
+    // `iw dev X station dump`: one block per peer, which for a client is the
+    // AP plus any TDLS peers
+    function parseStation(text: string): void {
+        const ap = text.split(/^Station /m).slice(1).find(b => !/^\s*TDLS peer:\s*yes/m.test(b));
+        bssid = ap?.match(/^([0-9a-f:]{17})\b/)?.[1] ?? "";
+        const at = ap?.match(/^\s*associated at:\s*(\d+) ms/m);
+        associatedAt = at ? parseFloat(at[1]) : -1;
+        now = Date.now();
+    }
+
+    function lookupVendor(): void {
+        if (!apOui || apOui in vendors || vendorProc.running)
+            return;
+        vendorProc.oui = apOui;
+        vendorProc.command = ["systemd-hwdb", "query", `OUI:${apOui}`];
+        vendorProc.running = true;
     }
 
     // `ip route show default` for every interface at once: the lowest metric is
@@ -438,11 +497,41 @@ Singleton {
         }
     }
 
+    Process {
+        id: stationProc
+        command: ["iw", "dev", root.device?.name ?? "", "station", "dump"]
+
+        stdout: StdioCollector {
+            onStreamFinished: root.parseStation(this.text)
+        }
+    }
+
+    Process {
+        id: vendorProc
+        property string oui
+
+        stdout: StdioCollector {
+            // a miss prints nothing and is cached as such
+            onStreamFinished: root.vendors = Object.assign({}, root.vendors, {
+                [vendorProc.oui]: this.text.match(/^ID_OUI_FROM_DATABASE=(.*)$/m)?.[1] ?? ""
+            })
+        }
+
+        // the AP may have changed while this query ran
+        onRunningChanged: {
+            if (!running)
+                root.lookupVendor();
+        }
+    }
+
     Timer {
         interval: 1000
         running: root.polling
         repeat: true
-        onTriggered: root.sampleThroughput()
+        onTriggered: {
+            root.now = Date.now();
+            root.sampleThroughput();
+        }
     }
 
     Timer {

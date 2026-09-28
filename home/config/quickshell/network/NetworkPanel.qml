@@ -52,7 +52,7 @@ PanelCard {
 
         SignalBars {
             anchors.verticalCenter: parent.verticalCenter
-            level: NetworkStatus.quality
+            level: NetworkStatus.qualityPending ? 0 : NetworkStatus.quality
         }
     }
 
@@ -62,6 +62,39 @@ PanelCard {
         visible: NetworkStatus.wifi
         label: "SSID"
         value: NetworkStatus.name || "—"
+    }
+
+    // the BSSID alone fills the row; the vendor, often a full company name,
+    // wraps below it rather than being elided away
+    Column {
+        width: parent.width
+        visible: NetworkStatus.wifi
+
+        Stat {
+            width: parent.width
+            label: "Access point"
+            value: NetworkStatus.bssid || "—"
+        }
+
+        Text {
+            width: parent.width
+            visible: NetworkStatus.bssid !== "" && NetworkStatus.apVendor !== ""
+            text: NetworkStatus.apVendor
+            horizontalAlignment: Text.AlignRight
+            wrapMode: Text.Wrap
+            maximumLineCount: 2
+            elide: Text.ElideRight
+            font.family: Theme.fontFamily
+            font.pointSize: Theme.smallSize
+            color: Theme.text
+        }
+    }
+
+    Stat {
+        width: parent.width
+        visible: NetworkStatus.wifi
+        label: "Connected for"
+        value: NetworkStatus.associatedFor < 0 ? "—" : NetworkStatus.formatDuration(NetworkStatus.associatedFor)
     }
 
     Stat {

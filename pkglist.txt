@@ -30,6 +30,7 @@ hyprland
 hyprlock
 hyprpaper
 hyprpicker
+iw
 jq
 lf
 libnotify
