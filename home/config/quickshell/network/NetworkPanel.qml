@@ -90,6 +90,21 @@ PanelCard {
         }
     }
 
+    // lock the profile to this AP: NM then skips the supplicant's periodic
+    // roaming scan, at the cost of never moving to a sibling AP
+    LabeledRow {
+        width: parent.width
+        visible: NetworkStatus.wifi
+        label: NetworkStatus.pinning ? "Reconnecting…" : "Pin access point"
+
+        Toggle {
+            anchors.verticalCenter: parent.verticalCenter
+            enabled: NetworkStatus.canPin
+            checked: NetworkStatus.pinned
+            onToggled: on => NetworkStatus.setPinned(on)
+        }
+    }
+
     Stat {
         width: parent.width
         visible: NetworkStatus.wifi

@@ -277,6 +277,36 @@ Singleton {
 
     onApOuiChanged: lookupVendor()
 
+    // --- pinning the profile to the current AP ---
+    //
+    // NM only configures the supplicant's roaming scan (bgscan) for a profile
+    // that is free to roam; locking `802-11-wireless.bssid` turns it off,
+    // which spares a full-band sweep every few minutes on a link that has
+    // nowhere better to go. The profile is edited through nmcli: quickshell's
+    // NMSettings.write() has no byte-array conversion for the bssid key.
+
+    // the active profile of `device`, and its bssid lock if any
+    property string profileUuid: ""
+    property string pinnedBssid: ""
+    readonly property bool pinned: pinnedBssid !== ""
+    readonly property bool pinning: pinProc.running
+    readonly property bool canPin: connected && bssid !== "" && profileUuid !== "" && !pinning
+
+    // bgscan is set up when the connection activates, so the profile is
+    // brought up again right after the edit: a few seconds offline either way
+    function setPinned(on: bool): void {
+        if (!canPin)
+            return;
+        pinProc.command = ["sh", "-c", 'nmcli connection modify uuid "$1" 802-11-wireless.bssid "$2" && exec nmcli connection up uuid "$1"', "wifi-pin", profileUuid, on ? bssid : ""];
+        pinProc.running = true;
+    }
+
+    function parseProfile(text: string): void {
+        const [uuid, lock] = text.split("\n");
+        profileUuid = uuid ?? "";
+        pinnedBssid = lock ?? "";
+    }
+
     // default routes by interface, and which one the kernel actually picks:
     // interfaces on the same prefix are separated by metric, not by address
     property var defaultRoutes: ({})
@@ -307,6 +337,8 @@ Singleton {
         ipv6 = [];
         bssid = "";
         associatedAt = -1;
+        profileUuid = "";
+        pinnedBssid = "";
         refreshDelay.restart();
     }
 
@@ -335,6 +367,8 @@ Singleton {
             routeProc.running = true;
         if (wifi && !stationProc.running)
             stationProc.running = true;
+        if (wifi && !profileProc.running)
+            profileProc.running = true;
     }
 
     function formatRate(rate: real): string {
@@ -503,6 +537,28 @@ Singleton {
 
         stdout: StdioCollector {
             onStreamFinished: root.parseStation(this.text)
+        }
+    }
+
+    // the connection's uuid is what `nmcli connection modify` needs; the name
+    // is not unique across profiles for one SSID
+    Process {
+        id: profileProc
+        command: ["sh", "-c", 'u=$(nmcli -g GENERAL.CON-UUID device show "$1") && printf "%s\\n%s\\n" "$u" "$(nmcli --escape no -g 802-11-wireless.bssid connection show uuid "$u")"', "wifi-profile", root.device?.name ?? ""]
+
+        stdout: StdioCollector {
+            onStreamFinished: root.parseProfile(this.text)
+        }
+    }
+
+    Process {
+        id: pinProc
+
+        // the toggle reflects the profile, not the click, so it snaps back on
+        // failure as well as forward on success
+        onRunningChanged: {
+            if (!running && !profileProc.running)
+                profileProc.running = true;
         }
     }
 
