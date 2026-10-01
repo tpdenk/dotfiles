@@ -31,6 +31,8 @@
 	name = Tim Denk
 	email = tim.denk@zymtrace.com
     signingkey = ~/.ssh/id_ed25519.pub
+[alias]
+    pull-all = "!git fetch --all --prune && git worktree list --porcelain | sed -n 's/^worktree //p' | tr '\\n' '\\0' | xargs -0 -P 8 -I{} sh -c 'git -C \"$1\" merge --ff-only @{u} 2>&1 | sed \"s|^|[$1] |\"' _ {}"
 [gpg]
     format = ssh
 [gpg "ssh"]
