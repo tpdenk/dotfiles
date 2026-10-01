@@ -481,6 +481,20 @@ create_zsh_local() {
 	done
 }
 
+create_monitors_local() {
+	local dest="${XDG_CONFIG_HOME:-$HOME/.config}/hypr-local/monitors.lua"
+	[[ -e "$dest" ]] && return
+	mkdir -p "${dest%/*}"
+	cat >"$dest" <<-'LUA'
+		-- machine-specific monitors, loaded by ~/.config/hypr/monitors.lua
+		-- list outputs/modes with: hyprctl monitors all
+		local hl = hl or error("no hl")
+
+		-- hl.monitor({ output = "eDP-1", mode = "preferred", position = "auto", scale = "1" })
+	LUA
+	echo "  created ${dest#"$HOME"/}"
+}
+
 link_dotfiles() {
 	local src name dest_name backup
 	backup="$HOME/.config-backup-$(date +%Y%m%d%H%M%S)"
@@ -513,6 +527,7 @@ link_dotfiles() {
 
 	make_user_dirs
 	create_zsh_local
+	create_monitors_local
 }
 
 enable_services() {
