@@ -1,1 +1,5 @@
 export QT_QPA_PLATFORMTHEME=gtk3
+# GTK file dialogs (Electron apps like Slack included) only route through the
+# portal, and so through termfilechooser, when told to; Chromium talks to the
+# portal directly and never needed this.
+export GTK_USE_PORTAL=1
