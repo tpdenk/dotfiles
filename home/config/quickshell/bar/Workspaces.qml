@@ -48,9 +48,28 @@ Pill {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: chip.modelData.activate()
+                onClicked: {
+                    chip.modelData.activate();
+                    root.previewHide(chip);
+                }
+                onEntered: {
+                    preview.workspace = chip.modelData;
+                    preview.chip = chip;
+                }
+                onExited: root.previewHide(chip)
             }
         }
+    }
+
+    function previewHide(chip: Item) {
+        // sliding between chips: don't let the old chip's exit close the new one
+        if (preview.chip === chip)
+            preview.chip = null;
+    }
+
+    WorkspacePreview {
+        id: preview
+        monitor: root.monitor
     }
 
     Rectangle {
