@@ -6,6 +6,7 @@ hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd("brave"))
 hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(here .. " xdg-terminal-exec -- lf"))
 
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
+hl.bind("SUPER + E", hl.dsp.exec_cmd("qs ipc call panels toggle notes"))
 hl.bind("SUPER + CTRL + W", hl.dsp.exec_cmd("qs ipc call panels toggle network"))
 hl.bind("SUPER + CTRL + B", hl.dsp.exec_cmd("qs ipc call panels toggle bluetooth"))
 hl.bind("SUPER + CTRL + A", hl.dsp.exec_cmd("qs ipc call panels toggle audio"))

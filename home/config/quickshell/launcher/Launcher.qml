@@ -204,7 +204,7 @@ Scope {
                 }));
     }
 
-    readonly property var panelNames: ["network", "bluetooth", "audio", "power", "updates", "docker", "tailscale", "notifications", "calendar"]
+    readonly property var panelNames: ["network", "bluetooth", "audio", "power", "updates", "docker", "tailscale", "notifications", "calendar", "notes"]
 
     function commands(q: string): var {
         const all = [

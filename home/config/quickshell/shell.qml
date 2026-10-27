@@ -6,6 +6,7 @@ import qs.bluetooth
 import qs.docker
 import qs.launcher
 import qs.network
+import qs.notes
 import qs.notifications
 import qs.power
 import qs.screenrecord
@@ -22,6 +23,7 @@ ShellRoot {
     Docker {}
     Launcher {}
     Network {}
+    Notes {}
     Notifications {}
     Power {}
     ScreenRecord {}

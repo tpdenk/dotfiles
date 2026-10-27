@@ -37,6 +37,14 @@ hl.window_rule({
     size = { 1536, 1008 },
 })
 
+hl.window_rule({
+    name = "float-notes",
+    match = { class = "^org\\.quickshell$", title = "^Notes$" },
+
+    float = true,
+    center = true,
+})
+
 hl.layer_rule({
     name = "share-outline",
     match = { namespace = "^share-outline$" },

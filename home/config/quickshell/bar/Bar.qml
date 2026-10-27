@@ -9,6 +9,7 @@ import qs.bluetooth
 import qs.docker
 import qs.mouse
 import qs.network
+import qs.notes
 import qs.notifications
 import qs.power
 import qs.screenrecord
@@ -113,6 +114,8 @@ Scope {
                         glyphColor: hovered || Panels.statusExpanded ? Theme.text : Theme.muted
                         onClicked: Panels.statusExpanded = !Panels.statusExpanded
                     }
+
+                    NotesIndicator {}
 
                     TailscaleIndicator {}
 
