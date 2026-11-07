@@ -7,6 +7,7 @@ import qs
 import qs.audio
 import qs.bluetooth
 import qs.docker
+import qs.idle
 import qs.mouse
 import qs.network
 import qs.notes
@@ -52,8 +53,17 @@ Scope {
                     verticalCenter: parent.verticalCenter
                     leftMargin: 8
                 }
-                maxWidth: clockPill.x - 16
+                maxWidth: idlePill.x - 16
                 monitor: Hyprland.monitorFor(panel.screen)
+            }
+
+            IdleInhibitIndicator {
+                id: idlePill
+                anchors {
+                    right: clockPill.left
+                    verticalCenter: parent.verticalCenter
+                    rightMargin: 6
+                }
             }
 
             Pill {
