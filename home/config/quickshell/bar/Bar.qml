@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 import qs
@@ -21,6 +22,19 @@ import qs.widgets
 
 // The top strip: no surface of its own, only the pills floating on it.
 Scope {
+    id: root
+
+    property bool shown: true
+
+    // `qs ipc call bar toggle`
+    IpcHandler {
+        target: "bar"
+
+        function toggle(): void {
+            root.shown = !root.shown;
+        }
+    }
+
     SystemClock {
         id: clock
         precision: SystemClock.Seconds
@@ -35,6 +49,7 @@ Scope {
             id: panel
             required property var modelData
             screen: modelData
+            visible: root.shown
             WlrLayershell.namespace: "bar"
 
             anchors {
