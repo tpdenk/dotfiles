@@ -499,7 +499,7 @@ link_dotfiles() {
 	local src name dest_name backup
 	backup="$HOME/.config-backup-$(date +%Y%m%d%H%M%S)"
 
-	mkdir -p "$HOME/.config" "$HOME/.local/bin" "$HOME/.claude"
+	mkdir -p "$HOME/.config" "$HOME/.local/bin"
 
 	mark_scripts_executable
 
@@ -523,12 +523,6 @@ link_dotfiles() {
 		name="$(basename "$src")"
 		dest_name="$HOME/.local/bin/${name%.*}"
 		link_one "$src" "${dest_name}"
-	done
-
-	# per file: ~/.claude also holds Claude Code's runtime state
-	for src in "$DOTFILES"/home/claude/*; do
-		[[ -f "$src" ]] || continue
-		link_one "$src" "$HOME/.claude/$(basename "$src")"
 	done
 
 	make_user_dirs
