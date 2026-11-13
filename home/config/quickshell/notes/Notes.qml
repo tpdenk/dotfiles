@@ -291,7 +291,7 @@ FloatingWindow { // qmllint disable uncreatable-type
                         anchors {
                             left: tick.right
                             leftMargin: 10
-                            right: pulls.left
+                            right: refs.left
                             rightMargin: 8
                             verticalCenter: parent.verticalCenter
                         }
@@ -308,7 +308,7 @@ FloatingWindow { // qmllint disable uncreatable-type
                     }
 
                     Row {
-                        id: pulls
+                        id: refs
                         anchors {
                             right: parent.right
                             rightMargin: 4
@@ -317,13 +317,13 @@ FloatingWindow { // qmllint disable uncreatable-type
                         spacing: 4
 
                         Repeater {
-                            model: row.modelData.pulls ?? []
+                            model: row.modelData.refs ?? []
 
                             Pill {
                                 id: pill
                                 required property var modelData
-                                label: "#" + pill.modelData.number
-                                labelColor: Theme.accent
+                                label: pill.modelData.label
+                                labelColor: pill.modelData.issue ? Theme.success : Theme.accentSecondary
                                 onClicked: NotesStatus.open(pill.modelData.url)
                             }
                         }

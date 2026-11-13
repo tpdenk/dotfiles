@@ -87,7 +87,7 @@ Singleton {
             rank: /^\d+$/.test(meta.rank ?? "") ? parseInt(meta.rank) : null,
             body: body,
             title: body.split("\n")[0],
-            pulls: root.pulls(root.links(body))
+            refs: root.refs(root.links(body))
         };
     }
 
@@ -113,21 +113,24 @@ Singleton {
         return root.links(text).find(link => position >= link.index && position < link.index + link.text.length)?.url ?? "";
     }
 
-    // `github.com/<owner>/<repo>/pull/<n>` links, one entry per pull request
-    function pulls(links: var): var {
+    // `github.com/<owner>/<repo>/issues/<n>` and `…/pull/<n>` links, one entry
+    // per issue or pull request, the issues first
+    function refs(links: var): var {
         const found = [];
         for (const link of links) {
-            const m = link.url.match(/^https?:\/\/(?:www\.)?github\.com\/([\w.-]+)\/([\w.-]+)\/pull\/(\d+)/i);
+            const m = link.url.match(/^https?:\/\/(?:www\.)?github\.com\/([\w.-]+)\/([\w.-]+)\/(issues?|pull)\/(\d+)/i);
             if (!m)
                 continue;
-            const url = `https://github.com/${m[1]}/${m[2]}/pull/${m[3]}`;
-            if (!found.some(pull => pull.url === url))
+            const issue = m[3].toLowerCase() !== "pull";
+            const url = `https://github.com/${m[1]}/${m[2]}/${issue ? "issues" : "pull"}/${m[4]}`;
+            if (!found.some(ref => ref.url === url))
                 found.push({
-                    number: m[3],
+                    issue: issue,
+                    label: (issue ? "!" : "#") + m[4],
                     url: url
                 });
         }
-        return found;
+        return found.filter(ref => ref.issue).concat(found.filter(ref => !ref.issue));
     }
 
     // StyledText of `text`, escaped, every link an anchor
