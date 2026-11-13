@@ -5,9 +5,9 @@ import QtQuick
 import Qt.labs.folderlistmodel
 
 // The todo list: one markdown file per note under ~/.notes. YAML front matter
-// holds the category, the done flag and the creation time; the body is the
-// text as typed, its first line the title. Every file is watched, so an edit
-// from another program shows up too.
+// holds the category, the done flag, the creation time and, once dragged, the
+// rank in the category; the body is the text as typed, its first line the
+// title. Every file is watched, so an edit from another program shows up too.
 Singleton {
     id: root
 
@@ -36,6 +36,9 @@ Singleton {
             required property string filePath
             path: filePath
             watchChanges: true
+            // a write updates the text at once: the rows of a drop take their
+            // new order in one go, not one file at a time
+            blockWrites: true
             onFileChanged: reload()
             onLoaded: root.refresh()
             onTextChanged: root.refresh()
@@ -58,7 +61,9 @@ Singleton {
             if (file.loaded)
                 list.push(root.parse(file.path, file.text()));
         }
-        list.sort((a, b) => root.groups.indexOf(a.group) - root.groups.indexOf(b.group) || a.created.localeCompare(b.created));
+        // ranked notes first, in rank order; NaN from two unranked ones falls
+        // through to the creation time
+        list.sort((a, b) => root.groups.indexOf(a.group) - root.groups.indexOf(b.group) || (a.rank ?? Infinity) - (b.rank ?? Infinity) || a.created.localeCompare(b.created));
         root.notes = list;
     }
 
@@ -79,6 +84,7 @@ Singleton {
             done: done,
             group: done ? "done" : category,
             created: meta.created ?? "",
+            rank: /^\d+$/.test(meta.rank ?? "") ? parseInt(meta.rank) : null,
             body: body,
             title: body.split("\n")[0],
             pulls: root.pulls(root.links(body))
@@ -141,8 +147,10 @@ Singleton {
         Quickshell.execDetached(["xdg-open", url]);
     }
 
+    // `rank` only once the note has been dragged in its category
     function serialize(note: var): string {
-        return `---\ncategory: ${note.category}\ndone: ${note.done}\ncreated: ${note.created}\n---\n${note.body}`;
+        const rank = note.rank === null || note.rank === undefined ? "" : `rank: ${note.rank}\n`;
+        return `---\ncategory: ${note.category}\ndone: ${note.done}\ncreated: ${note.created}\n${rank}---\n${note.body}`;
     }
 
     // `later: fix the roof` files under "later"; no prefix means "next"
@@ -164,12 +172,34 @@ Singleton {
         }));
     }
 
+    // a note moved to another category drops its rank there. A write that
+    // changes nothing is skipped: the reload would rebuild the rows while the
+    // editor sets its first text, inside the binding that opens it
     function save(path: string, patch: var): void {
         const note = root.notes.find(entry => entry.path === path);
+        if (patch.category !== undefined && patch.category !== note.category)
+            patch = Object.assign({
+                rank: null
+            }, patch);
+        const text = root.serialize(Object.assign({}, note, patch));
+        if (text === root.serialize(note))
+            return;
         for (let i = 0; i < files.count; i++) {
             const file = files.objectAt(i);
             if (file.path === path)
-                file.setText(root.serialize(Object.assign({}, note, patch)));
+                file.setText(text);
         }
+    }
+
+    // put the note at `from` among those of `group` at `to`, and rank them all
+    function move(group: string, from: int, to: int): void {
+        const members = root.notes.filter(note => note.group === group);
+        members.splice(to, 0, members.splice(from, 1)[0]);
+        members.forEach((note, rank) => {
+            if (note.rank !== rank)
+                root.save(note.path, {
+                    rank: rank
+                });
+        });
     }
 }

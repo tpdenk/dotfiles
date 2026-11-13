@@ -8,8 +8,9 @@ import qs.widgets
 // The todo window: a floating toplevel Hyprland centres and lets you drag
 // (SUPER + drag), opened by `Panels.toggle("notes")` like the dropdowns.
 // Enter files what is typed, Shift+Enter breaks the line; a click on a note
-// opens it for editing, and every keystroke there lands on disk. Links open
-// in the browser: a click in a title, Ctrl+click in the editor.
+// opens it for editing, and every keystroke there lands on disk. A note drags
+// up and down its category. Links open in the browser: a click in a title,
+// Ctrl+click in the editor.
 FloatingWindow { // qmllint disable uncreatable-type
     id: win
 
@@ -27,6 +28,36 @@ FloatingWindow { // qmllint disable uncreatable-type
 
     // "<category>: <verb> <noun>", drawn fresh on every open
     property string prompt: ""
+
+    // the note being dragged up or down its group, and how far
+    property string dragPath: ""
+    property real dragOffset: 0
+    // cleared before `dragPath` on a drop, so the rows snap into the new order
+    // instead of sliding there a second time
+    property bool dragging: false
+    readonly property int rowHeight: 32
+    readonly property real rowStep: rowHeight + list.spacing
+    readonly property string dragGroup: NotesStatus.notes.find(note => note.path === dragPath)?.group ?? ""
+    readonly property var dragMembers: NotesStatus.notes.filter(note => note.group === dragGroup)
+    readonly property int dragFrom: dragMembers.findIndex(note => note.path === dragPath)
+    readonly property int dragTo: dragFrom + Math.round(dragOffset / rowStep)
+    // the slots assume closed rows, so the group of the open note stays put
+    readonly property string expandedGroup: NotesStatus.notes.find(note => note.path === expandedPath)?.group ?? ""
+
+    function drag(path: string, offset: real): void {
+        dragPath = path;
+        dragging = true;
+        // the note stays inside its group
+        dragOffset = Math.max(-dragFrom * rowStep, Math.min((dragMembers.length - 1 - dragFrom) * rowStep, offset));
+    }
+
+    function drop(commit: bool): void {
+        if (commit && dragTo !== dragFrom)
+            NotesStatus.move(dragGroup, dragFrom, dragTo);
+        dragging = false;
+        dragPath = "";
+        dragOffset = 0;
+    }
 
     FileView {
         id: verbs
@@ -132,6 +163,7 @@ FloatingWindow { // qmllint disable uncreatable-type
         }
 
         ListView {
+            id: list
             width: parent.width
             height: parent.height - y
             clip: true
@@ -149,8 +181,35 @@ FloatingWindow { // qmllint disable uncreatable-type
 
                 readonly property bool isHeader: !!row.modelData.header
                 readonly property bool expanded: win.expandedPath === row.modelData.path
+                readonly property bool dragged: win.dragPath === row.modelData.path
+                readonly property bool draggable: !row.isHeader && row.modelData.group !== "done" && row.modelData.group !== win.expandedGroup
+                // out of its slot: under the pointer, or making room for the
+                // dragged note
+                readonly property real shift: {
+                    if (row.dragged)
+                        return win.dragOffset;
+                    const at = win.dragMembers.findIndex(note => note.path === row.modelData.path);
+                    if (win.dragFrom < at && at <= win.dragTo)
+                        return -win.rowStep;
+                    if (win.dragTo <= at && at < win.dragFrom)
+                        return win.rowStep;
+                    return 0;
+                }
 
                 width: ListView.view.width
+                z: row.dragged ? 1 : 0
+                transform: Translate {
+                    y: row.shift
+
+                    Behavior on y {
+                        enabled: win.dragging && !row.dragged
+
+                        NumberAnimation {
+                            duration: Theme.durationIn
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
 
                 Text {
                     visible: row.isHeader
@@ -166,16 +225,44 @@ FloatingWindow { // qmllint disable uncreatable-type
                 Rectangle {
                     visible: !row.isHeader
                     width: parent.width
-                    height: 32
+                    height: win.rowHeight
                     radius: Theme.roundingSmall
-                    color: row.expanded ? Theme.highlight : hover.containsMouse ? Theme.base : "transparent"
+                    color: row.expanded || row.dragged ? Theme.highlight : hover.containsMouse ? Theme.base : "transparent"
 
                     MouseArea {
                         id: hover
+
+                        // pointer in list content coordinates at the press,
+                        // which the row's own translation leaves alone
+                        property real pressY
+                        property bool moved
+
                         anchors.fill: parent
                         hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: win.expandedPath = row.expanded ? "" : row.modelData.path
+                        cursorShape: row.dragged ? Qt.ClosedHandCursor : Qt.PointingHandCursor
+                        // the list would flick instead
+                        preventStealing: true
+
+                        onPressed: mouse => {
+                            pressY = mapToItem(list.contentItem, 0, mouse.y).y;
+                            moved = false;
+                        }
+                        onPositionChanged: mouse => {
+                            if (!pressed || !row.draggable)
+                                return;
+                            const offset = mapToItem(list.contentItem, 0, mouse.y).y - pressY;
+                            if (!moved && Math.abs(offset) < Qt.styleHints.startDragDistance)
+                                return;
+                            moved = true;
+                            win.drag(row.modelData.path, offset);
+                        }
+                        onReleased: if (moved)
+                            win.drop(true)
+                        onCanceled: if (moved)
+                            win.drop(false)
+                        // a release after a drag still clicks
+                        onClicked: if (!moved)
+                            win.expandedPath = row.expanded ? "" : row.modelData.path
                     }
 
                     Text {
