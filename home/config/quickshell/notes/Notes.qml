@@ -8,7 +8,8 @@ import qs.widgets
 // The todo window: a floating toplevel Hyprland centres and lets you drag
 // (SUPER + drag), opened by `Panels.toggle("notes")` like the dropdowns.
 // Enter files what is typed, Shift+Enter breaks the line; a click on a note
-// opens it for editing, and every keystroke there lands on disk.
+// opens it for editing, and every keystroke there lands on disk. Links open
+// in the browser: a click in a title, Ctrl+click in the editor.
 FloatingWindow { // qmllint disable uncreatable-type
     id: win
 
@@ -203,16 +204,42 @@ FloatingWindow { // qmllint disable uncreatable-type
                         anchors {
                             left: tick.right
                             leftMargin: 10
-                            right: parent.right
+                            right: pulls.left
                             rightMargin: 8
                             verticalCenter: parent.verticalCenter
                         }
-                        text: row.modelData.title ?? ""
+                        text: NotesStatus.linkify(row.modelData.title ?? "")
+                        textFormat: Text.StyledText
                         elide: Text.ElideRight
                         font.family: Theme.fontFamily
                         font.pointSize: Theme.fontSize
                         font.strikeout: row.modelData.done ?? false
                         color: row.modelData.done ? Theme.muted : Theme.text
+                        linkColor: Theme.accent
+                        // a press off a link falls through to the row
+                        onLinkActivated: link => NotesStatus.open(link)
+                    }
+
+                    Row {
+                        id: pulls
+                        anchors {
+                            right: parent.right
+                            rightMargin: 4
+                            verticalCenter: parent.verticalCenter
+                        }
+                        spacing: 4
+
+                        Repeater {
+                            model: row.modelData.pulls ?? []
+
+                            Pill {
+                                id: pill
+                                required property var modelData
+                                label: "#" + pill.modelData.number
+                                labelColor: Theme.accent
+                                onClicked: NotesStatus.open(pill.modelData.url)
+                            }
+                        }
                     }
                 }
 
@@ -256,6 +283,21 @@ FloatingWindow { // qmllint disable uncreatable-type
                             onTextChanged: NotesStatus.save(row.modelData.path, {
                                 body: text
                             })
+
+                            HoverHandler {
+                                id: linkHover
+                                acceptedModifiers: Qt.ControlModifier
+                                cursorShape: NotesStatus.linkAt(editor.text, editor.positionAt(linkHover.point.position.x, linkHover.point.position.y)) !== "" ? Qt.PointingHandCursor : Qt.IBeamCursor
+                            }
+
+                            TapHandler {
+                                acceptedModifiers: Qt.ControlModifier
+                                onTapped: eventPoint => {
+                                    const link = NotesStatus.linkAt(editor.text, editor.positionAt(eventPoint.position.x, eventPoint.position.y));
+                                    if (link !== "")
+                                        NotesStatus.open(link);
+                                }
+                            }
                         }
                     }
                 }

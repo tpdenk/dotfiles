@@ -80,8 +80,65 @@ Singleton {
             group: done ? "done" : category,
             created: meta.created ?? "",
             body: body,
-            title: body.split("\n")[0]
+            title: body.split("\n")[0],
+            pulls: root.pulls(root.links(body))
         };
+    }
+
+    // links as typed: with a scheme, from `www.`, or a bare `host.tld/path`;
+    // trailing punctuation belongs to the sentence around the link
+    function links(text: string): var {
+        const pattern = /\b(?:https?:\/\/|www\.)[^\s<>"]+|\b(?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s<>"]*/gi;
+        const found = [];
+        let m;
+        while ((m = pattern.exec(text)) !== null) {
+            const link = m[0].replace(/[.,;:!?'")\]}]+$/, "");
+            found.push({
+                index: m.index,
+                text: link,
+                url: /^https?:\/\//i.test(link) ? link : "https://" + link
+            });
+        }
+        return found;
+    }
+
+    // the link under `position` in `text`, or ""
+    function linkAt(text: string, position: int): string {
+        return root.links(text).find(link => position >= link.index && position < link.index + link.text.length)?.url ?? "";
+    }
+
+    // `github.com/<owner>/<repo>/pull/<n>` links, one entry per pull request
+    function pulls(links: var): var {
+        const found = [];
+        for (const link of links) {
+            const m = link.url.match(/^https?:\/\/(?:www\.)?github\.com\/([\w.-]+)\/([\w.-]+)\/pull\/(\d+)/i);
+            if (!m)
+                continue;
+            const url = `https://github.com/${m[1]}/${m[2]}/pull/${m[3]}`;
+            if (!found.some(pull => pull.url === url))
+                found.push({
+                    number: m[3],
+                    url: url
+                });
+        }
+        return found;
+    }
+
+    // StyledText of `text`, escaped, every link an anchor
+    function linkify(text: string): string {
+        const escape = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        let html = "";
+        let at = 0;
+        for (const link of root.links(text)) {
+            html += escape(text.slice(at, link.index)) + `<a href="${escape(link.url)}">${escape(link.text)}</a>`;
+            at = link.index + link.text.length;
+        }
+        return html + escape(text.slice(at));
+    }
+
+    // the browser opens beside the window, which stays up
+    function open(url: string): void {
+        Quickshell.execDetached(["xdg-open", url]);
     }
 
     function serialize(note: var): string {
