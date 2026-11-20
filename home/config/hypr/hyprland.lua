@@ -45,6 +45,17 @@ hl.window_rule({
     center = true,
 })
 
+-- view: Brave names an --app window after its URL, and a file:// URL has no
+-- host, which gives the "__"
+hl.window_rule({
+    name = "float-view",
+    match = { class = "^brave-__.+$" },
+
+    float = true,
+    center = true,
+    size = "monitor_w*0.6 monitor_h*0.8",
+})
+
 hl.layer_rule({
     name = "share-outline",
     match = { namespace = "^share-outline$" },
