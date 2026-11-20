@@ -16,10 +16,24 @@ Singleton {
     readonly property string directory: decodeURIComponent(String(StandardPaths.writableLocation(StandardPaths.PicturesLocation)).replace(/^file:\/\//, "")) + "/Screenshots"
 
     // from the moment the screen freezes until the file is on disk
-    readonly property bool active: freeze.running || picker.running || capture.running
+    readonly property bool active: freeze.running || picker.running || root.veiled || capture.running
 
     property var last: null
     property var pending: null
+
+    // Hyprland draws the pointer into the frame itself on this machine: software
+    // cursors, its choice on NVIDIA beside a second GPU. A capture then carries
+    // the pointer whether it asks for one or not, so before grim reads the
+    // freeze Screenshot veils every monitor with a surface whose cursor is
+    // blank, and reports the pointer reaching one.
+    property bool veiled: false
+
+    function pointerVeiled(): void {
+        if (!root.veiled)
+            return;
+        shoot.interval = 50;
+        shoot.restart();
+    }
 
     function dismiss(): void {
         root.last = null;
@@ -90,8 +104,17 @@ Singleton {
 
             capture.path = path;
             capture.command = ["sh", "-c", 'mkdir -p "$1" && shift && exec "$@"', "screenshot", root.directory, "grim"].concat(area, [path]);
-            capture.running = true;
+            root.veiled = true;
+            shoot.interval = 300;
+            shoot.restart();
         }
+    }
+
+    // the pointer is out of the frame a frame or two after it reaches the veil;
+    // one that never does, held by a drag or a constraint, is not waited for
+    Timer {
+        id: shoot
+        onTriggered: capture.running = true
     }
 
     Process {
@@ -105,6 +128,7 @@ Singleton {
 
         onExited: code => {
             freeze.running = false;
+            root.veiled = false;
             root.last = null;
 
             if (code === 0) {

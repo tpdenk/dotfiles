@@ -51,3 +51,11 @@ hl.layer_rule({
 
     no_anim = true,
 })
+
+-- slurp: a screenshot is taken as it closes and must not find it fading out
+hl.layer_rule({
+    name = "share-picker",
+    match = { namespace = "^selection$" },
+
+    no_anim = true,
+})

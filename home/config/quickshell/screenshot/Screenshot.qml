@@ -309,6 +309,40 @@ Scope {
         }
     }
 
+    // ScreenshotStatus.veiled: over these the pointer has no cursor
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow { // qmllint disable uncreatable-type
+            required property var modelData
+            screen: modelData
+
+            visible: ScreenshotStatus.veiled
+
+            WlrLayershell.namespace: "screenshot-veil"
+            WlrLayershell.layer: WlrLayer.Overlay
+            exclusionMode: ExclusionMode.Ignore
+            color: "transparent"
+
+            anchors {
+                top: true
+                left: true
+                right: true
+                bottom: true
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.BlankCursor
+                onContainsMouseChanged: {
+                    if (containsMouse)
+                        ScreenshotStatus.pointerVeiled();
+                }
+            }
+        }
+    }
+
     IpcHandler {
         target: "screenshot"
 
